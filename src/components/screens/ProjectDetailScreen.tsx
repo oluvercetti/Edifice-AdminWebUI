@@ -82,14 +82,14 @@ export function ProjectDetailScreen({ id }: { id: string }) {
       <div className="mb-4.5">
         <Link
           href="/catalogue"
-          className="mb-2.5 inline-flex items-center gap-1 text-[13px] font-semibold text-muted"
+          className="mb-2.5 inline-flex items-center gap-1 text-sm font-semibold text-muted"
         >
           <Icon.chevL size={16} />
           Catalogue
         </Link>
         <div className="flex flex-wrap items-center gap-3.5">
-          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">{project.title}</h1>
-          <span className="inline-flex items-center gap-1 text-[13px] text-muted">
+          <h1 className="m-0 text-2xl font-bold tracking-[-.02em]">{project.title}</h1>
+          <span className="inline-flex items-center gap-1 text-sm text-muted">
             <Icon.pin size={15} />
             {project.location}
           </span>
@@ -133,7 +133,7 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                       </span>
                       <span
                         className={cx(
-                          "text-[11.5px] font-semibold",
+                          "text-xs font-semibold",
                           done || isCurrent ? "text-ink" : "text-muted",
                         )}
                       >
@@ -158,16 +158,16 @@ export function ProjectDetailScreen({ id }: { id: string }) {
           <Card title="Live funding">
             <div className="mb-3.5 flex gap-7">
               <div>
-                <div className="text-[11.5px] font-semibold text-muted">Raised</div>
-                <div className="ngn text-[19px] font-extrabold">{fmtNGN(project.raised)}</div>
+                <div className="text-xs font-semibold text-muted">Raised</div>
+                <div className="ngn text-xl font-extrabold">{fmtNGN(project.raised)}</div>
               </div>
               <div>
-                <div className="text-[11.5px] font-semibold text-muted">Target</div>
-                <div className="ngn text-[19px] font-extrabold">{fmtNGN(project.target)}</div>
+                <div className="text-xs font-semibold text-muted">Target</div>
+                <div className="ngn text-xl font-extrabold">{fmtNGN(project.target)}</div>
               </div>
               <div>
-                <div className="text-[11.5px] font-semibold text-muted">% Funded</div>
-                <div className="text-[19px] font-extrabold">{project.pctFunded}%</div>
+                <div className="text-xs font-semibold text-muted">% Funded</div>
+                <div className="text-xl font-extrabold">{project.pctFunded}%</div>
               </div>
             </div>
             <Progress value={project.pctFunded} height={8} />
@@ -183,7 +183,7 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                 style={{ width: `${(project.disbursed / splitTotal) * 100}%` }}
               />
             </div>
-            <div className="mt-2.5 flex gap-4.5 text-[12.5px]">
+            <div className="mt-2.5 flex gap-4.5 text-xs">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.25 w-2.25 rounded-full bg-m-escrowed" />
                 <span className="text-muted">In escrow</span>
@@ -218,7 +218,7 @@ export function ProjectDetailScreen({ id }: { id: string }) {
             <div className="flex flex-col gap-3">
               {project.useOfProceeds.map(([label, pct]) => (
                 <div key={label}>
-                  <div className="mb-1.25 flex justify-between text-[12.5px]">
+                  <div className="mb-1.25 flex justify-between text-xs">
                     <span className="font-semibold text-ink">{label}</span>
                     <span className="text-muted">{pct}%</span>
                   </div>
@@ -235,7 +235,7 @@ export function ProjectDetailScreen({ id }: { id: string }) {
             <Card title="Publish controls">
               <div className="flex flex-col gap-3">
                 {!isSuper && (
-                  <div className="flex items-center gap-2 rounded-md bg-canvas px-3 py-2.5 text-[12.5px] text-muted">
+                  <div className="flex items-center gap-2 rounded-md bg-canvas px-3 py-2.5 text-xs text-muted">
                     <Icon.lock size={15} />
                     Publish &amp; approve actions require a Super Admin.
                   </div>
@@ -284,8 +284,8 @@ export function ProjectDetailScreen({ id }: { id: string }) {
 
           {/* SPV card */}
           <Card title="Developer / SPV">
-            <div className="text-[13.5px] font-bold">{project.spvName}</div>
-            <div className="mt-0.75 text-[12.5px] text-muted">
+            <div className="text-sm font-bold">{project.spvName}</div>
+            <div className="mt-0.75 text-xs text-muted">
               {project.rcNumber ? `RC ${project.rcNumber}` : "RC number pending"}
             </div>
           </Card>
@@ -295,10 +295,10 @@ export function ProjectDetailScreen({ id }: { id: string }) {
       {/* Publish / unpublish confirm modal */}
       <Modal open={confirm !== null} onClose={() => setConfirm(null)}>
         <div className="p-5.5">
-          <h3 className="m-0 text-[17px] font-bold">
+          <h3 className="m-0 text-lg font-bold">
             {confirm === "unpublish" ? "Unpublish this project?" : "Publish this project?"}
           </h3>
-          <p className="mt-2 mb-0 text-[13.5px] leading-normal text-muted">
+          <p className="mt-2 mb-0 text-sm leading-normal text-muted">
             {confirm === "unpublish"
               ? "This removes the project from Discover. Investors will no longer see it."
               : "This makes the project visible to investors on Discover."}
@@ -414,7 +414,7 @@ function PostUpdateModal({
   return (
     <Modal open={open} onClose={onClose} width={520}>
       <form onSubmit={handleSubmit(onSubmit)} className="p-5.5">
-        <h3 className="m-0 text-[17px] font-bold">Post progress update</h3>
+        <h3 className="m-0 text-lg font-bold">Post progress update</h3>
 
         {/* Milestone selector */}
         <div className="mt-4 flex flex-col gap-2">
@@ -426,7 +426,7 @@ function PostUpdateModal({
                 type="button"
                 onClick={() => selectMilestone(milestone)}
                 className={cx(
-                  "flex cursor-pointer items-center gap-2.75 rounded-[9px] border px-3 py-2.5 text-left",
+                  "flex cursor-pointer items-center gap-2.75 rounded-md border px-3 py-2.5 text-left",
                   selectedRow
                     ? "border-primary-accent bg-primary-tint"
                     : "border-line bg-surface",
@@ -434,7 +434,7 @@ function PostUpdateModal({
               >
                 <span
                   className={cx(
-                    "grid h-6 w-6 flex-none place-items-center rounded-[7px] text-xs font-bold",
+                    "grid h-6 w-6 flex-none place-items-center rounded-sm text-xs font-bold",
                     selectedRow
                       ? "bg-primary-accent text-white"
                       : "bg-[#EEF1EF] text-muted",
@@ -442,7 +442,7 @@ function PostUpdateModal({
                 >
                   {index + 1}
                 </span>
-                <span className="flex-1 text-[13px] font-semibold">{milestone.title}</span>
+                <span className="flex-1 text-sm font-semibold">{milestone.title}</span>
                 <span className="text-xs text-muted">tranche {milestone.tranchePct}%</span>
               </button>
             );
@@ -451,7 +451,7 @@ function PostUpdateModal({
 
         {/* Completion */}
         <div className="mt-4">
-          <div className="mb-2 text-[12.5px] font-semibold">Completion — {completion}%</div>
+          <div className="mb-2 text-xs font-semibold">Completion — {completion}%</div>
           <input
             type="range"
             min={0}
@@ -484,7 +484,7 @@ function PostUpdateModal({
 
         {/* Disbursement warning */}
         {completion >= 100 && (
-          <div className="mt-3.5 flex items-start gap-2.25 rounded-[9px] bg-[#FCF3D9] px-3.25 py-2.75 text-[12.5px] leading-normal text-[#7A5A00]">
+          <div className="mt-3.5 flex items-start gap-2.25 rounded-md bg-[#FCF3D9] px-3.25 py-2.75 text-xs leading-normal text-[#7A5A00]">
             <Icon.alert size={16} style={{ flex: "none", marginTop: 1 }} />
             <span>
               Marking complete requests a disbursement of tranche {selected?.tranchePct ?? 0}% for

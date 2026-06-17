@@ -128,7 +128,7 @@ function LiveFeedPanel() {
       label: "Txn",
       w: 96,
       render: (row) => (
-        <span className="font-mono text-[12.5px] font-bold">{row.id}</span>
+        <span className="font-mono text-xs font-bold">{row.id}</span>
       ),
     },
     {
@@ -263,10 +263,10 @@ function SeverityCell({
 }) {
   return (
     <Card>
-      <div className="text-[30px] font-extrabold tracking-[-.02em]" style={{ color }}>
+      <div className="text-3xl font-extrabold tracking-[-.02em]" style={{ color }}>
         {value}
       </div>
-      <div className="mt-1 text-[12.5px] font-semibold text-muted">{label}</div>
+      <div className="mt-1 text-xs font-semibold text-muted">{label}</div>
     </Card>
   );
 }
@@ -298,7 +298,7 @@ function StreamCell({
           />
           <span
             className={cx(
-              "text-[13.5px] font-bold",
+              "text-sm font-bold",
               streaming ? "text-white" : "text-ink",
             )}
           >
@@ -308,7 +308,7 @@ function StreamCell({
         <button
           onClick={onToggle}
           className={cx(
-            "grid h-7 w-7 cursor-pointer place-items-center rounded-[7px] border-none",
+            "grid h-7 w-7 cursor-pointer place-items-center rounded-sm border-none",
             streaming ? "bg-white/12 text-white" : "bg-canvas text-muted",
           )}
           title={streaming ? "Pause stream" : "Resume stream"}
@@ -318,7 +318,7 @@ function StreamCell({
       </div>
       <div
         className={cx(
-          "mt-2.5 text-[12.5px] font-semibold",
+          "mt-2.5 text-xs font-semibold",
           streaming ? "text-white/70" : "text-muted",
         )}
       >
@@ -340,7 +340,7 @@ function TxnDrawer({ txn, onClose }: { txn: Txn | null; onClose: () => void }) {
       {txn && (
         <div className="flex flex-col gap-4.5">
           <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-canvas p-4">
-            <div className="ngn text-[26px] font-extrabold tracking-[-.02em]">
+            <div className="ngn text-2xl font-extrabold tracking-[-.02em]">
               {fmtNGN(txn.amount)}
             </div>
             <TypeBadge map={TXN_TYPES} value={txn.type} />
@@ -356,7 +356,7 @@ function TxnDrawer({ txn, onClose }: { txn: Txn | null; onClose: () => void }) {
           {txn.flagged && (
             <div className="flex items-center gap-2.5 rounded-md border border-[#F4C4BF] bg-[#FDECEA] px-3.5 py-3 text-danger">
               <Icon.flag size={16} color={SEVERITY_COLOR[txn.severity ?? "low"]} />
-              <span className="text-[13px] font-bold">
+              <span className="text-sm font-bold">
                 {txn.severity === "high"
                   ? "High"
                   : txn.severity === "med"
@@ -368,7 +368,7 @@ function TxnDrawer({ txn, onClose }: { txn: Txn | null; onClose: () => void }) {
           )}
 
           <div>
-            <div className="mb-2 text-[11.5px] font-bold tracking-[.04em] text-muted uppercase">
+            <div className="mb-2 text-xs font-bold tracking-[.04em] text-muted uppercase">
               Ledger entries
             </div>
             <div className="overflow-hidden rounded-md border border-line">
@@ -391,7 +391,7 @@ function TxnDrawer({ txn, onClose }: { txn: Txn | null; onClose: () => void }) {
 
 function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-[13.5px]">
+    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-sm">
       <span className="font-semibold text-muted">{label}</span>
       <span className="font-semibold text-ink">{value}</span>
     </div>
@@ -410,7 +410,7 @@ function LedgerRow({
   return (
     <div
       className={cx(
-        "flex items-center justify-between px-3.5 py-2.75 text-[13px]",
+        "flex items-center justify-between px-3.5 py-2.75 text-sm",
         border && "border-b border-line",
       )}
     >
@@ -583,7 +583,7 @@ function FlagDrawer({
         </Button>
       </>
     ) : flag ? (
-      <div className="flex items-center gap-1.5 text-[12.5px] text-muted">
+      <div className="flex items-center gap-1.5 text-xs text-muted">
         <Icon.eye size={15} /> Read-only
       </div>
     ) : undefined;
@@ -610,10 +610,10 @@ function FlagDrawer({
           </div>
 
           <div>
-            <div className="mb-2 text-[11.5px] font-bold tracking-[.04em] text-muted uppercase">
+            <div className="mb-2 text-xs font-bold tracking-[.04em] text-muted uppercase">
               Investigation notes
             </div>
-            <div className="flex items-center gap-2 rounded-md border border-line bg-canvas px-3.5 py-3 text-[13px] text-muted">
+            <div className="flex items-center gap-2 rounded-md border border-line bg-canvas px-3.5 py-3 text-sm text-muted">
               <Icon.info size={15} /> Rule fired automatically.
             </div>
           </div>
@@ -626,8 +626,8 @@ function FlagDrawer({
 function MiniStat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-md border border-line px-3 py-2.5">
-      <div className="mb-1 text-[11px] font-semibold text-muted">{label}</div>
-      <div className="text-[13.5px] font-bold text-ink">{value}</div>
+      <div className="mb-1 text-xs font-semibold text-muted">{label}</div>
+      <div className="text-sm font-bold text-ink">{value}</div>
     </div>
   );
 }
@@ -656,7 +656,7 @@ function RulesPanel({ readOnly }: { readOnly: boolean }) {
     <div>
       <div className="mb-4.5 flex items-center gap-3 rounded-xl border border-line bg-primary-tint px-4.5 py-3.5 text-brand">
         <Icon.info size={18} />
-        <span className="text-[13px] font-semibold">
+        <span className="text-sm font-semibold">
           Tune anomaly rules without engineering. Changes apply to the live stream immediately.
         </span>
       </div>
@@ -695,7 +695,7 @@ function RulesPanel({ readOnly }: { readOnly: boolean }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-bold text-ink">{rule.name}</span>
-                  <span className="inline-flex h-5 items-center rounded-sm border border-line px-2 text-[11px] font-bold text-muted">
+                  <span className="inline-flex h-5 items-center rounded-sm border border-line px-2 text-xs font-bold text-muted">
                     {rule.type}
                   </span>
                 </div>
@@ -788,7 +788,7 @@ function RuleEditModal({
             />
           </Field>
           <div>
-            <div className="mb-1.5 text-[12.5px] font-semibold text-ink">Severity</div>
+            <div className="mb-1.5 text-xs font-semibold text-ink">Severity</div>
             <Segmented
               options={[
                 { value: "high", label: "High" },

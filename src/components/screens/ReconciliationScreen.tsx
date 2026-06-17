@@ -75,7 +75,7 @@ function ReconciliationConsole({
   return (
     <div className="flex flex-col gap-4.5">
       {disbursementsFrozen && (
-        <div className="sticky top-0 z-20 flex items-center gap-2.5 rounded-md bg-[#FDECEA] px-4 py-3 text-[13.5px] font-bold text-danger border border-danger">
+        <div className="sticky top-0 z-20 flex items-center gap-2.5 rounded-md bg-[#FDECEA] px-4 py-3 text-sm font-bold text-danger border border-danger">
           <Icon.lock size={16} />
           Disbursements are frozen pending reconciliation.
         </div>
@@ -101,13 +101,13 @@ function ReconciliationConsole({
         <div>
           <div
             className={cx(
-              "text-[17px] font-extrabold tracking-[-.01em]",
+              "text-lg font-extrabold tracking-[-.01em]",
               isBalanced ? "text-success" : "text-danger",
             )}
           >
             {isBalanced ? "Balanced" : "Drift detected"}
           </div>
-          <div className="mt-0.75 text-[13px] text-muted">
+          <div className="mt-0.75 text-sm text-muted">
             {isBalanced
               ? `All three sources agree. Last checked ${shortDateTime(data.checkedAt)}.`
               : "Sources disagree — disbursements are frozen until resolved."}
@@ -142,15 +142,15 @@ function ReconciliationConsole({
                 index !== 0 && "border-t border-line",
               )}
             >
-              <span className="flex-1 text-[13.5px] font-semibold text-ink">
+              <span className="flex-1 text-sm font-semibold text-ink">
                 {line.label}
               </span>
-              <span className="ngn text-right text-[14.5px] font-bold text-ink">
+              <span className="ngn text-right text-sm font-bold text-ink">
                 {fmtNGN(line.amount)}
               </span>
               <span
                 className={cx(
-                  "inline-flex w-24 items-center justify-end gap-1.5 text-[12.5px] font-bold",
+                  "inline-flex w-24 items-center justify-end gap-1.5 text-xs font-bold",
                   line.ok ? "text-success" : "text-danger",
                 )}
               >
@@ -164,14 +164,14 @@ function ReconciliationConsole({
 
       {/* Freeze control */}
       {readOnly ? (
-        <div className="inline-flex items-center gap-1.75 text-[12.5px] font-semibold text-muted">
+        <div className="inline-flex items-center gap-1.75 text-xs font-semibold text-muted">
           <Icon.eye size={14} />
           Read-only — viewing only
         </div>
       ) : (
         <Card title="Disbursement freeze">
           <div className="flex flex-col gap-3.5">
-            <p className="m-0 text-[13px] leading-relaxed text-muted">
+            <p className="m-0 text-sm leading-relaxed text-muted">
               Freeze all disbursements while a discrepancy is investigated. A banner
               appears across the console while frozen.
             </p>

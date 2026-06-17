@@ -131,7 +131,7 @@ export function CatalogueScreen() {
       render: (project) => (
         <div className="flex items-center gap-2">
           <Progress value={project.pctFunded} height={5} style={{ width: 56 }} />
-          <span className="text-[12.5px] text-muted">{project.pctFunded}%</span>
+          <span className="text-xs text-muted">{project.pctFunded}%</span>
         </div>
       ),
     },
@@ -175,7 +175,7 @@ export function CatalogueScreen() {
       label: "Updated",
       w: 150,
       render: (project) => (
-        <span className="text-[12.5px] text-muted">{shortDateTime(project.updatedAt)}</span>
+        <span className="text-xs text-muted">{shortDateTime(project.updatedAt)}</span>
       ),
     },
   ];
@@ -193,13 +193,13 @@ export function CatalogueScreen() {
           getId={(project) => project.id}
           onRowClick={(project) => router.push(`/catalogue/${project.id}`)}
           empty={
-            <div className="px-3.5 py-2 text-[13px] text-muted">
+            <div className="px-3.5 py-2 text-sm text-muted">
               No projects match this filter.
             </div>
           }
         />
       </Card>
-      <div className="mt-3 flex items-center gap-1.75 text-[12.5px] text-muted">
+      <div className="mt-3 flex items-center gap-1.75 text-xs text-muted">
         <Icon.layers size={14} />
         Published projects appear on Discover in this order.
       </div>

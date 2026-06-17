@@ -36,8 +36,8 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
           </svg>
         </span>
         <div>
-          <div className="text-[15.5px] font-bold tracking-[-.01em] text-white">Edifice</div>
-          <div className="text-[10.5px] font-semibold tracking-[.04em] text-[#6f8a7c]">ADMIN CONSOLE</div>
+          <div className="text-base font-bold tracking-[-.01em] text-white">Edifice</div>
+          <div className="text-xs font-semibold tracking-[.04em] text-[#6f8a7c]">ADMIN CONSOLE</div>
         </div>
       </div>
       <nav className="thin-scroll flex-1 overflow-y-auto px-2.5 py-1.5">
@@ -49,14 +49,14 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
               key={item.id}
               href={item.href}
               className={cx(
-                "relative mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2.75 py-2.25 text-[13.5px] no-underline",
+                "relative mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2.75 py-2.25 text-sm no-underline",
                 active ? "bg-[rgba(25,135,84,.22)] font-bold text-white" : "font-medium text-[#a9bcb1]",
               )}
             >
               <Glyph size={18} />
               <span className="flex-1">{item.label}</span>
               {item.badge === "live" && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#7ee0a8]">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#7ee0a8]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#3ddc84] animate-[ed-pulse_1.6s_infinite]" />
                   LIVE
                 </span>
@@ -68,7 +68,7 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
           );
         })}
       </nav>
-      <div className="border-t border-white/8 px-3.5 py-3 text-[11px] text-[#6f8a7c]">
+      <div className="border-t border-white/8 px-3.5 py-3 text-xs text-[#6f8a7c]">
         <div className="flex items-center gap-1.5">
           <span className="h-1.75 w-1.75 rounded-full bg-[#3ddc84]" />
           All systems operational
@@ -115,14 +115,14 @@ function TopBar() {
       <div className="relative">
         <button
           onClick={() => setMenuOpen((open) => !open)}
-          className="flex h-10 items-center gap-2.25 rounded-[10px] border border-line bg-surface py-0 pr-2 pl-2.5"
+          className="flex h-10 items-center gap-2.25 rounded-md border border-line bg-surface py-0 pr-2 pl-2.5"
         >
-          <span className="grid h-7.5 w-7.5 place-items-center rounded-md bg-brand text-[12.5px] font-bold text-white">
+          <span className="grid h-7.5 w-7.5 place-items-center rounded-md bg-brand text-xs font-bold text-white">
             {initialsOf(admin.name)}
           </span>
           <span className="text-left">
-            <span className="block text-[12.5px] leading-tight font-bold">{admin.name}</span>
-            <span className="block text-[11px] font-bold" style={{ color: roleMeta.color }}>
+            <span className="block text-xs leading-tight font-bold">{admin.name}</span>
+            <span className="block text-xs font-bold" style={{ color: roleMeta.color }}>
               {roleMeta.label}
             </span>
           </span>
@@ -132,7 +132,7 @@ function TopBar() {
           <>
             <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[50]" />
             <div className="absolute top-11.5 right-0 z-[51] w-65 rounded-xl border border-line bg-surface p-2 shadow-pop animate-[ed-fade_.12s]">
-              <div className="px-2.5 pt-1.5 pb-2 text-[11px] font-bold tracking-[.05em] text-muted uppercase">
+              <div className="px-2.5 pt-1.5 pb-2 text-xs font-bold tracking-[.05em] text-muted uppercase">
                 View console as role
               </div>
               {selectableRoles.map((roleKey) => (
@@ -149,8 +149,8 @@ function TopBar() {
                 >
                   <span className="h-2 w-2 flex-none rounded-full" style={{ background: ROLES[roleKey].color }} />
                   <span className="flex-1">
-                    <span className="block text-[13px] font-bold text-ink">{ROLES[roleKey].label}</span>
-                    <span className="mt-px block text-[11.5px] leading-snug text-muted">{ROLES[roleKey].desc}</span>
+                    <span className="block text-sm font-bold text-ink">{ROLES[roleKey].label}</span>
+                    <span className="mt-px block text-xs leading-snug text-muted">{ROLES[roleKey].desc}</span>
                   </span>
                   {role === roleKey && <Icon.check size={15} className="text-primary-accent" />}
                 </button>
@@ -158,7 +158,7 @@ function TopBar() {
               <div className="my-2 h-px bg-line" />
               <button
                 onClick={() => void logout()}
-                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-[13px] font-semibold text-danger"
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-sm font-semibold text-danger"
               >
                 <Icon.logout size={16} />
                 Sign out
@@ -178,7 +178,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <Sidebar viewAs={viewAs} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="mx-auto w-full max-w-[1320px] flex-1 px-7 pt-6.5 pb-15">{children}</main>
+        <main className="mx-auto w-full max-w-330 flex-1 px-7 pt-6.5 pb-15">{children}</main>
       </div>
     </div>
   );

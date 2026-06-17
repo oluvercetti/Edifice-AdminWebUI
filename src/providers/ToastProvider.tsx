@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             )}
           >
             <Glyph size={19} />
-            <span className="text-[13.5px] font-semibold">{toast.msg}</span>
+            <span className="text-sm font-semibold">{toast.msg}</span>
           </div>
         </div>
       )}

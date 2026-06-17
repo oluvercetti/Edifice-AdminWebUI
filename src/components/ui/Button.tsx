@@ -31,7 +31,7 @@ export interface ButtonProps {
 }
 
 const SIZE_CLASSES: Record<Size, string> = {
-  sm: "h-8 gap-1.5 rounded-md px-3 text-[12.5px]",
+  sm: "h-8 gap-1.5 rounded-md px-3 text-xs",
   md: "h-10 gap-2 rounded-md px-4 text-sm",
   lg: "h-12 gap-2.25 rounded-md px-5 text-base",
 };

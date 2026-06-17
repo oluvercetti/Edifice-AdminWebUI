@@ -76,8 +76,8 @@ export function EmptyState({
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-tint text-primary-strong">
         <IconGlyph size={26} />
       </span>
-      <h3 className="m-0 text-[15px] font-bold text-ink">{title}</h3>
-      {body && <p className="mt-2 mb-0 max-w-72 text-[13px] leading-normal text-muted">{body}</p>}
+      <h3 className="m-0 text-sm font-bold text-ink">{title}</h3>
+      {body && <p className="mt-2 mb-0 max-w-72 text-sm leading-normal text-muted">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -97,8 +97,8 @@ export function ErrorState({
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FDECEA] text-danger">
         <Icon.alert size={26} />
       </span>
-      <h3 className="m-0 text-[15px] font-bold text-ink">{title}</h3>
-      <p className="mt-2 mb-0 max-w-72 text-[13px] leading-normal text-muted">{body}</p>
+      <h3 className="m-0 text-sm font-bold text-ink">{title}</h3>
+      <p className="mt-2 mb-0 max-w-72 text-sm leading-normal text-muted">{body}</p>
       {onRetry && (
         <div className="mt-5">
           <Button variant="secondary" size="sm" leftIcon={<Icon.refresh size={15} />} onClick={onRetry}>

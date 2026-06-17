@@ -45,23 +45,23 @@ function AuditRow({
         className="flex w-full items-center gap-3.5 px-4.5 py-3.25 text-left transition-colors hover:bg-canvas"
       >
         <span
-          className="grid h-[34px] w-[34px] flex-none place-items-center rounded-md text-[11.5px] font-bold"
+          className="grid h-8.5 w-8.5 flex-none place-items-center rounded-md text-xs font-bold"
           style={{ background: `${roleColor}14`, color: roleColor }}
         >
           {initials(label)}
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13.5px]">
+          <span className="block truncate text-sm">
             <span className="font-bold">{label}</span>{" "}
             <span className="text-muted">{entry.action}</span>
           </span>
-          <span className="block truncate text-[12.5px] text-muted">{entry.entity}</span>
+          <span className="block truncate text-xs text-muted">{entry.entity}</span>
         </span>
 
         {entry.role && <RoleBadge role={entry.role as AdminRole} size="sm" />}
 
-        <span className="w-24 flex-none text-right font-mono text-[12.5px] text-muted">
+        <span className="w-24 flex-none text-right font-mono text-xs text-muted">
           {shortDateTime(entry.at)}
         </span>
 
@@ -72,19 +72,19 @@ function AuditRow({
       </button>
 
       {open && (
-        <div className="pr-4.5 pb-4 pl-[68px]">
-          <div className="mb-2 text-[11px] font-bold tracking-[.06em] text-muted uppercase">
+        <div className="pr-4.5 pb-4 pl-17">
+          <div className="mb-2 text-xs font-bold tracking-[.06em] text-muted uppercase">
             Before → After
           </div>
           {entry.diff.length === 0 ? (
-            <div className="text-[12.5px] text-muted">No field-level changes recorded.</div>
+            <div className="text-xs text-muted">No field-level changes recorded.</div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-line">
               {entry.diff.map((field, index) => (
                 <div
                   key={field.field}
                   className={cx(
-                    "flex items-center gap-2.5 px-3 py-2.25 text-[12.5px]",
+                    "flex items-center gap-2.5 px-3 py-2.25 text-xs",
                     index > 0 && "border-t border-[#EEF1EF]",
                   )}
                 >

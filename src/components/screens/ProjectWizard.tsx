@@ -33,7 +33,7 @@ const DEFAULT_USE_OF_PROCEEDS: [string, number][] = [
 function DashedBox({ label, height = 120 }: { label: string; height?: number }) {
   return (
     <div
-      className="grid place-items-center gap-1.5 rounded-md border-[1.5px] border-dashed border-line p-3 text-center text-[12.5px] font-semibold text-muted"
+      className="grid place-items-center gap-1.5 rounded-md border-[1.5px] border-dashed border-line p-3 text-center text-xs font-semibold text-muted"
       style={{ height }}
     >
       {label}
@@ -129,12 +129,12 @@ export function ProjectWizard() {
       <div className="mb-4.5">
         <Link
           href="/catalogue"
-          className="mb-2.5 inline-flex items-center gap-1 text-[13px] font-semibold text-muted"
+          className="mb-2.5 inline-flex items-center gap-1 text-sm font-semibold text-muted"
         >
           <Icon.chevL size={16} />
           Catalogue
         </Link>
-        <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">New project</h1>
+        <h1 className="m-0 text-2xl font-bold tracking-[-.02em]">New project</h1>
       </div>
 
       {/* Stepper */}
@@ -147,13 +147,13 @@ export function ProjectWizard() {
               key={label}
               onClick={() => setStep(index)}
               className={cx(
-                "inline-flex cursor-pointer items-center gap-2 rounded-[9px] border px-3.25 py-2 text-[12.5px] font-bold",
+                "inline-flex cursor-pointer items-center gap-2 rounded-md border px-3.25 py-2 text-xs font-bold",
                 on ? "border-primary-accent bg-primary-tint text-brand" : "border-line bg-surface text-muted",
               )}
             >
               <span
                 className={cx(
-                  "grid h-5 w-5 flex-none place-items-center rounded-full text-[11px]",
+                  "grid h-5 w-5 flex-none place-items-center rounded-full text-xs",
                   done
                     ? "bg-success text-white"
                     : on
@@ -253,7 +253,7 @@ export function ProjectWizard() {
                 />
               </Field>
             </div>
-            <div className="flex items-start gap-2.25 rounded-[9px] bg-[#FCF3D9] px-3.25 py-2.75 text-[12.5px] leading-normal text-[#7A5A00]">
+            <div className="flex items-start gap-2.25 rounded-md bg-[#FCF3D9] px-3.25 py-2.75 text-xs leading-normal text-[#7A5A00]">
               <Icon.info size={16} style={{ flex: "none", marginTop: 1 }} />
               <span>
                 No maximum investment to configure — Edifice projects accept any amount per investor.
@@ -266,7 +266,7 @@ export function ProjectWizard() {
         {step === 2 && (
           <div>
             {!totalsOk && (
-              <div className="mb-4 flex items-start gap-2.25 rounded-[9px] bg-[#FDECEA] px-3.25 py-2.75 text-[12.5px] leading-normal text-danger">
+              <div className="mb-4 flex items-start gap-2.25 rounded-md bg-[#FDECEA] px-3.25 py-2.75 text-xs leading-normal text-danger">
                 <Icon.alert size={16} style={{ flex: "none", marginTop: 1 }} />
                 <span>
                   Weights total {weightTotal}% and tranches total {trancheTotal}%. Both must equal
@@ -316,7 +316,7 @@ export function ProjectWizard() {
               >
                 Add milestone
               </Button>
-              <div className="flex gap-4.5 text-[12.5px] font-semibold">
+              <div className="flex gap-4.5 text-xs font-semibold">
                 <span
                   className={cx(
                     "inline-flex items-center gap-1.5",
@@ -344,7 +344,7 @@ export function ProjectWizard() {
         {step === 3 && (
           <div className="flex flex-col gap-3.5">
             <DashedBox label="Drag & drop project photos here, or click to upload" height={160} />
-            <div className="text-[12.5px] text-muted">
+            <div className="text-xs text-muted">
               Tip: the first image becomes the cover. Set cover by reordering once uploaded.
             </div>
             <div className="grid grid-cols-4 gap-2.5">
@@ -365,7 +365,7 @@ export function ProjectWizard() {
                 (document) => (
                   <div
                     key={document}
-                    className="flex items-center gap-2.5 rounded-[9px] border border-line px-3 py-2.5 text-[13px]"
+                    className="flex items-center gap-2.5 rounded-md border border-line px-3 py-2.5 text-sm"
                   >
                     <Icon.doc size={16} color="var(--muted)" />
                     <span className="flex-1">{document}</span>
@@ -380,7 +380,7 @@ export function ProjectWizard() {
         {/* Step: Review */}
         {step === 5 && (
           <div className="flex flex-col gap-3.5">
-            <div className="text-[14.5px] font-bold">Completeness checklist</div>
+            <div className="text-sm font-bold">Completeness checklist</div>
             <div className="flex flex-col gap-2">
               {[
                 { label: "Basics (title & location)", ok: !errors.title && !errors.location },
@@ -392,7 +392,7 @@ export function ProjectWizard() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center gap-2.5 rounded-[9px] border border-line px-3 py-2.5 text-[13px]"
+                  className="flex items-center gap-2.5 rounded-md border border-line px-3 py-2.5 text-sm"
                 >
                   <span
                     className={cx(

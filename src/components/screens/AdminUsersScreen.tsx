@@ -78,12 +78,12 @@ export function AdminUsersScreen() {
       w: 230,
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-md bg-brand text-[12.5px] font-bold text-white">
+          <span className="grid h-8.5 w-8.5 flex-none place-items-center rounded-md bg-brand text-xs font-bold text-white">
             {initialsOf(row.name)}
           </span>
           <div className="min-w-0">
             <div className="truncate font-bold text-ink">{row.name}</div>
-            <div className="truncate text-[12.5px] text-muted">{row.email}</div>
+            <div className="truncate text-xs text-muted">{row.email}</div>
           </div>
         </div>
       ),
@@ -321,7 +321,7 @@ function AdminModal({
           </Field>
 
           <div className="mb-4">
-            <div className="mb-2 text-[12.5px] font-semibold text-ink">
+            <div className="mb-2 text-xs font-semibold text-ink">
               Roles ·{" "}
               <span className="font-medium text-muted">
                 least-privilege — assign only what&apos;s needed
@@ -353,10 +353,10 @@ function AdminModal({
                       {selected && <Icon.check size={14} />}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[13.5px] font-bold text-ink">
+                      <span className="block text-sm font-bold text-ink">
                         {option.label}
                       </span>
-                      <span className="block text-[12px] text-muted">
+                      <span className="block text-xs text-muted">
                         Can access: {option.powers}
                       </span>
                     </span>
@@ -376,8 +376,8 @@ function AdminModal({
               <Icon.shieldCheck size={18} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-[13.5px] font-bold text-ink">Require MFA</div>
-              <div className="text-[12px] text-muted">
+              <div className="text-sm font-bold text-ink">Require MFA</div>
+              <div className="text-xs text-muted">
                 Enforce TOTP at every sign-in
               </div>
             </div>

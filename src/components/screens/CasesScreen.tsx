@@ -89,14 +89,14 @@ export function CasesScreen() {
       key: "id",
       label: "Case",
       w: 90,
-      render: (c) => <span className="font-mono text-[12.5px] font-bold">{c.id}</span>,
+      render: (c) => <span className="font-mono text-xs font-bold">{c.id}</span>,
     },
     {
       key: "type",
       label: "Type",
       w: 120,
       render: (c) => (
-        <span className="inline-flex items-center gap-1.75 text-[12.5px] font-semibold text-ink">
+        <span className="inline-flex items-center gap-1.75 text-xs font-semibold text-ink">
           <span
             className="h-2 w-2 flex-none rounded-full"
             style={{ background: TYPE_DOT[c.type] ?? "var(--muted)" }}
@@ -143,7 +143,7 @@ export function CasesScreen() {
       w: 80,
       render: (c) =>
         c.assignee ? (
-          <span className="grid h-6.5 w-6.5 place-items-center rounded-full bg-primary-tint text-[11px] font-bold text-brand">
+          <span className="grid h-6.5 w-6.5 place-items-center rounded-full bg-primary-tint text-xs font-bold text-brand">
             {initialsOf(c.assignee)}
           </span>
         ) : (
@@ -295,7 +295,7 @@ function CaseDrawer({
         )}
       </>
     ) : caseRow ? (
-      <div className="flex items-center gap-1.5 text-[12.5px] text-muted">
+      <div className="flex items-center gap-1.5 text-xs text-muted">
         <Icon.eye size={15} /> Read-only
       </div>
     ) : undefined;
@@ -334,7 +334,7 @@ function CaseDrawer({
                     </span>
                     <span
                       className={cx(
-                        "text-[11.5px] font-semibold",
+                        "text-xs font-semibold",
                         reached ? "text-ink" : "text-muted",
                       )}
                     >
@@ -369,7 +369,7 @@ function CaseDrawer({
 
           {/* Activity */}
           <div>
-            <div className="mb-2.5 text-[11.5px] font-bold tracking-[.04em] text-muted uppercase">
+            <div className="mb-2.5 text-xs font-bold tracking-[.04em] text-muted uppercase">
               Activity
             </div>
             <div className="flex flex-col gap-3">
@@ -398,8 +398,8 @@ function CaseDrawer({
 function MiniStat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-md border border-line px-3 py-2.5">
-      <div className="mb-1 text-[11px] font-semibold text-muted">{label}</div>
-      <div className="text-[13.5px] font-bold text-ink">{value}</div>
+      <div className="mb-1 text-xs font-semibold text-muted">{label}</div>
+      <div className="text-sm font-bold text-ink">{value}</div>
     </div>
   );
 }
@@ -420,10 +420,10 @@ function NoteCard({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-bold text-ink">{author}</span>
-          <span className="text-[11.5px] text-muted">{age}</span>
+          <span className="text-sm font-bold text-ink">{author}</span>
+          <span className="text-xs text-muted">{age}</span>
         </div>
-        <p className="mt-1 mb-0 text-[13px] leading-relaxed text-muted">{body}</p>
+        <p className="mt-1 mb-0 text-sm leading-relaxed text-muted">{body}</p>
       </div>
     </div>
   );

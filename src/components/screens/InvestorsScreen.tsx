@@ -85,7 +85,7 @@ export function InvestorsScreen() {
       w: 220,
       render: (investor) => (
         <div className="flex items-center gap-2.5">
-          <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full bg-primary-tint text-[12.5px] font-bold text-brand">
+          <span className="grid h-8.5 w-8.5 flex-none place-items-center rounded-full bg-primary-tint text-xs font-bold text-brand">
             {initials(investor.name)}
           </span>
           <div className="min-w-0">
@@ -242,7 +242,7 @@ function InvestorDrawer({
   const footer =
     detail &&
     (readOnly ? (
-      <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
         <Icon.eye size={14} />
         Read-only
       </div>
@@ -318,7 +318,7 @@ function InvestorDrawerBody({
           {initials(detail.name)}
         </span>
         <div className="min-w-0">
-          <div className="truncate text-[13px] text-muted">{detail.email}</div>
+          <div className="truncate text-sm text-muted">{detail.email}</div>
           <div className="mt-1.5 flex items-center gap-2">
             <Pill status={detail.verified} />
             <Pill status={detail.status} />
@@ -345,8 +345,8 @@ function InvestorDrawerBody({
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-line bg-canvas px-3.5 py-3">
-      <div className="text-[12px] font-semibold text-muted">{label}</div>
-      <div className="mt-1 text-[19px] font-extrabold tracking-[-.02em]">{value}</div>
+      <div className="text-xs font-semibold text-muted">{label}</div>
+      <div className="mt-1 text-xl font-extrabold tracking-[-.02em]">{value}</div>
     </div>
   );
 }
@@ -354,7 +354,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function OverviewTab({ steps }: { steps: VerificationStep[] }) {
   return (
     <div>
-      <div className="mb-2.5 text-[11.5px] font-bold tracking-[.04em] text-muted uppercase">
+      <div className="mb-2.5 text-xs font-bold tracking-[.04em] text-muted uppercase">
         Identity verification history
       </div>
       <div className="flex flex-col gap-3">
@@ -372,7 +372,7 @@ function OverviewTab({ steps }: { steps: VerificationStep[] }) {
               )}
             </span>
             <div className="min-w-0">
-              <div className="text-[13px] font-bold text-ink">{step.label}</div>
+              <div className="text-sm font-bold text-ink">{step.label}</div>
               <div className="text-xs text-muted">{step.detail}</div>
             </div>
           </div>
@@ -401,7 +401,7 @@ function TransactionsTab({ transactions }: { transactions: InvestorDetail["trans
   ];
 
   if (transactions.length === 0) {
-    return <div className="py-6 text-center text-[13px] text-muted">No transactions yet.</div>;
+    return <div className="py-6 text-center text-sm text-muted">No transactions yet.</div>;
   }
 
   return <Table dense columns={columns} rows={transactions} getId={(txn) => txn.id} />;
@@ -452,7 +452,7 @@ function IdentityReviewModal({
 
 function ProviderRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-[13px]">
+    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-sm">
       <span className="font-semibold text-muted">{label}</span>
       <span className="font-semibold text-ink">{value}</span>
     </div>

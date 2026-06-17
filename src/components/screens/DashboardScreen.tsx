@@ -138,7 +138,7 @@ function FumCard({ data }: { data: DashboardData }) {
   const disbursePct = total > 0 ? (data.disbursed / total) * 100 : 0;
   return (
     <Card title="Funds under management" sub="Across all live projects">
-      <div className="ngn text-[30px] font-extrabold tracking-[-.02em] text-ink">
+      <div className="ngn text-3xl font-extrabold tracking-[-.02em] text-ink">
         {fmtNGNCompact(data.fum)}
       </div>
       <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-[#EEF1EF]">
@@ -157,8 +157,8 @@ function LegendItem({ color, label, value }: { color: string; label: string; val
   return (
     <div className="flex items-center gap-2">
       <span className="h-2.25 w-2.25 flex-none rounded-full" style={{ background: color }} />
-      <span className="text-[12.5px] font-semibold text-muted">{label}</span>
-      <span className="ngn text-[13px] font-bold text-ink">{value}</span>
+      <span className="text-xs font-semibold text-muted">{label}</span>
+      <span className="ngn text-sm font-bold text-ink">{value}</span>
     </div>
   );
 }
@@ -170,7 +170,7 @@ function LiveIndicator() {
         className="h-1.5 w-1.5 rounded-full bg-[#3ddc84]"
         style={{ animation: "ed-pulse 1.6s infinite" }}
       />
-      <span className="text-[11px] font-extrabold tracking-[.06em] text-success">
+      <span className="text-xs font-extrabold tracking-[.06em] text-success">
         LIVE
       </span>
     </span>
@@ -256,7 +256,7 @@ function MiniBox({ label, value, color }: { label: string; value: number; color:
       <div className="ngn text-2xl font-extrabold tracking-[-.02em]" style={{ color }}>
         {value}
       </div>
-      <div className="mt-1 text-[12.5px] font-semibold text-muted">
+      <div className="mt-1 text-xs font-semibold text-muted">
         {label}
       </div>
     </div>
@@ -281,7 +281,7 @@ function PendingApprovalsCard({ data }: { data: DashboardData }) {
 function OpsCard() {
   return (
     <Card title="Operations">
-      <p className="m-0 text-[13.5px] leading-normal text-muted">
+      <p className="m-0 text-sm leading-normal text-muted">
         Investor accounts &amp; complaints — full tools coming in the next phase.
       </p>
     </Card>
@@ -296,7 +296,7 @@ function AuditorCard() {
         <span className="grid h-9.5 w-9.5 flex-none place-items-center rounded-md bg-[#EEF0F2] text-muted">
           <Icon.eye size={18} />
         </span>
-        <p className="m-0 text-[13.5px] leading-normal text-ink">
+        <p className="m-0 text-sm leading-normal text-ink">
           You are viewing as Auditor. All data is visible and exportable; mutating controls are
           hidden.
         </p>
@@ -396,10 +396,10 @@ export function DashboardScreen() {
     <div className="flex flex-col gap-4.5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">
+          <h1 className="m-0 text-2xl font-bold tracking-[-.02em]">
             {greeting()}, {firstName}
           </h1>
-          <p className="mt-1.25 mb-0 text-[13.5px] text-muted">
+          <p className="mt-1.25 mb-0 text-sm text-muted">
             Here&apos;s what needs your attention as{" "}
             <span className="font-bold" style={{ color: roleMeta.color }}>{roleMeta.label}</span>.
           </p>

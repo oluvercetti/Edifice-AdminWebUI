@@ -226,7 +226,7 @@ function ReviewDrawer({
         </Button>
       </>
     ) : (
-      <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
         {readOnly ? (
           <>
             <Icon.eye size={14} />
@@ -254,8 +254,8 @@ function ReviewDrawer({
             {/* Prominent amount box */}
             <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-canvas p-4.5">
               <div>
-                <div className="text-[12.5px] font-semibold text-muted">Releasing</div>
-                <div className="mt-1 text-[30px] font-extrabold tracking-[-.02em]">
+                <div className="text-xs font-semibold text-muted">Releasing</div>
+                <div className="mt-1 text-3xl font-extrabold tracking-[-.02em]">
                   {fmtNGN(disbursement.amount)}
                 </div>
               </div>
@@ -264,7 +264,7 @@ function ReviewDrawer({
 
             {/* Milestone evidence */}
             <div>
-              <div className="mb-2 text-[12.5px] font-bold">Milestone evidence</div>
+              <div className="mb-2 text-xs font-bold">Milestone evidence</div>
               <div className="grid grid-cols-2 gap-2.5">
                 <Placeholder icon="camera" label="Progress photo" height={120} />
                 <Placeholder icon="camera" label="Progress photo" height={120} />
@@ -282,7 +282,7 @@ function ReviewDrawer({
             {/* Escrow check */}
             <div
               className={cx(
-                "flex items-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold",
+                "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold",
                 escrowCoversAmount
                   ? "bg-m-disbursed-tint text-success"
                   : "bg-[#FDECEA] text-danger",
@@ -296,7 +296,7 @@ function ReviewDrawer({
 
             {/* Maker-checker guardrail note */}
             {showActions && isOwnProposal && (
-              <div className="flex items-center gap-2 rounded-md bg-[#FCF3D9] px-3 py-2.5 text-[12.5px] font-semibold text-[#9a7b00]">
+              <div className="flex items-center gap-2 rounded-md bg-[#FCF3D9] px-3 py-2.5 text-xs font-semibold text-[#9a7b00]">
                 <Icon.lock size={15} />
                 You cannot approve your own proposal (maker-checker).
               </div>
@@ -310,7 +310,7 @@ function ReviewDrawer({
           <div>
             <div className="px-5 pt-4.5">
               <div className="text-base font-bold">Release this disbursement?</div>
-              <p className="mt-2 text-[13.5px] leading-normal text-muted">
+              <p className="mt-2 text-sm leading-normal text-muted">
                 This releases {fmtNGN(disbursement.amount)} from escrow to the developer for{" "}
                 {disbursement.projectTitle ?? "—"}. This cannot be undone.
               </p>
@@ -336,7 +336,7 @@ function ReviewDrawer({
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-[13px]">
+    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-sm">
       <span className="font-semibold text-muted">{label}</span>
       <span className="font-semibold text-ink">{value}</span>
     </div>

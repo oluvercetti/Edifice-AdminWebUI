@@ -199,8 +199,8 @@ function KpiCard({
 }) {
   return (
     <Card pad={16}>
-      <div className="text-[12.5px] font-semibold text-muted">{label}</div>
-      <div className="ngn mt-2 text-[24px] font-extrabold text-ink">{value}</div>
+      <div className="text-xs font-semibold text-muted">{label}</div>
+      <div className="ngn mt-2 text-2xl font-extrabold text-ink">{value}</div>
       <div className="mt-1.5 text-xs text-muted">{sub}</div>
     </Card>
   );
@@ -225,7 +225,7 @@ function GmvChart({ points }: { points: GmvPoint[] }) {
                   index === maxIndex ? "var(--primary-accent)" : "#cfe3d8",
               }}
             />
-            <div className="mt-1.5 text-center text-[11px] text-muted">
+            <div className="mt-1.5 text-center text-xs text-muted">
               {point.month}
             </div>
           </div>
@@ -257,10 +257,10 @@ function EscrowDonut({
         <div className="absolute inset-0 grid place-items-center">
           <div className="grid h-20 w-20 place-items-center rounded-full bg-surface text-center">
             <div>
-              <div className="text-[17px] font-extrabold text-ink">
+              <div className="text-lg font-extrabold text-ink">
                 {Math.round(escrowPct)}%
               </div>
-              <div className="text-[11px] text-muted">escrowed</div>
+              <div className="text-xs text-muted">escrowed</div>
             </div>
           </div>
         </div>
@@ -286,8 +286,8 @@ function LegendRow({
     <div className="flex items-center gap-2.5">
       <span className={cx("h-3 w-3 flex-none rounded-sm", tone)} />
       <div>
-        <div className="text-[12.5px] font-semibold text-ink">{label}</div>
-        <div className="ngn text-[12.5px] text-muted">{fmtNGN(amount)}</div>
+        <div className="text-xs font-semibold text-ink">{label}</div>
+        <div className="ngn text-xs text-muted">{fmtNGN(amount)}</div>
       </div>
     </div>
   );

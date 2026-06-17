@@ -21,7 +21,7 @@ function Stage({ children }: { children: React.ReactNode }) {
   return (
     <div className="ed-auth-stage flex min-h-screen">
       <div className="grid w-full place-items-center p-6">
-        <div className="w-105 max-w-full rounded-[18px] bg-surface p-8 shadow-pop">{children}</div>
+        <div className="w-105 max-w-full rounded-xl bg-surface p-8 shadow-pop">{children}</div>
       </div>
     </div>
   );
@@ -38,7 +38,7 @@ function Brand() {
       </span>
       <div>
         <div className="text-base font-bold tracking-[-.01em]">Edifice</div>
-        <div className="text-[10.5px] font-bold tracking-tight text-muted">ADMIN CONSOLE · INTERNAL USE</div>
+        <div className="text-xs font-bold tracking-tight text-muted">ADMIN CONSOLE · INTERNAL USE</div>
       </div>
     </div>
   );
@@ -118,8 +118,8 @@ export function AuthScreens() {
           <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-lg bg-[#FDECEA] text-danger">
             <Icon.lock size={26} />
           </span>
-          <h1 className="mb-1.5 text-[22px] font-bold">Access denied</h1>
-          <p className="mb-4.5 text-[13.5px] leading-relaxed text-muted">
+          <h1 className="mb-1.5 text-2xl font-bold">Access denied</h1>
+          <p className="mb-4.5 text-sm leading-relaxed text-muted">
             The admin console can only be reached from an approved office network or VPN.
           </p>
           <div className="mb-4.5 rounded-md border border-line bg-canvas p-3.5 text-left">
@@ -128,7 +128,7 @@ export function AuthScreens() {
               ["Network", "Unrecognised"],
               ["Required", "Office / VPN"],
             ].map(([label, value]) => (
-              <div key={label} className="flex justify-between py-0.75 text-[12.5px]">
+              <div key={label} className="flex justify-between py-0.75 text-xs">
                 <span className="text-muted">{label}</span>
                 <span className="font-semibold">{value}</span>
               </div>
@@ -137,7 +137,7 @@ export function AuthScreens() {
           <Button full variant="secondary" size="lg" onClick={() => setMode("login")}>
             Back to sign in
           </Button>
-          <p className="mt-3.5 text-[11.5px] text-muted">This attempt has been logged. Contact IT to request access.</p>
+          <p className="mt-3.5 text-xs text-muted">This attempt has been logged. Contact IT to request access.</p>
         </div>
       </Stage>
     );
@@ -148,7 +148,7 @@ export function AuthScreens() {
       <Stage>
         <button
           onClick={() => setMode("login")}
-          className="mb-3.5 inline-flex items-center gap-1 text-[13px] font-semibold text-muted"
+          className="mb-3.5 inline-flex items-center gap-1 text-sm font-semibold text-muted"
         >
           <Icon.chevL size={16} />
           Back
@@ -156,8 +156,8 @@ export function AuthScreens() {
         <span className="mb-3.5 grid h-11.5 w-11.5 place-items-center rounded-xl bg-primary-tint text-primary-strong">
           <Icon.shieldCheck size={22} />
         </span>
-        <h1 className="mb-1.5 text-[21px] font-bold">Two-factor authentication</h1>
-        <p className="mb-4.5 text-[13.5px] text-muted">Enter the 6-digit code from your authenticator app.</p>
+        <h1 className="mb-1.5 text-xl font-bold">Two-factor authentication</h1>
+        <p className="mb-4.5 text-sm text-muted">Enter the 6-digit code from your authenticator app.</p>
         <div className={cx("mb-3.5 flex gap-2", mfaError && "ed-shake")}>
           {digits.map((digit, index) => (
             <input
@@ -172,14 +172,14 @@ export function AuthScreens() {
               maxLength={1}
               aria-label={`Digit ${index + 1}`}
               className={cx(
-                "h-14 w-12 rounded-md border-[1.5px] text-center text-[22px] font-bold text-ink outline-none",
+                "h-14 w-12 rounded-md border-[1.5px] text-center text-2xl font-bold text-ink outline-none",
                 mfaError ? "border-danger" : digit ? "border-primary-accent" : "border-line",
               )}
             />
           ))}
         </div>
         {mfaError && (
-          <div className="mb-3 flex items-center gap-1.5 text-[12.5px] font-semibold text-danger">
+          <div className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-danger">
             <Icon.alert size={14} />
             Invalid code. Try again.
           </div>
@@ -194,8 +194,8 @@ export function AuthScreens() {
   return (
     <Stage>
       <Brand />
-      <h1 className="mb-1 text-[22px] font-bold">Sign in</h1>
-      <p className="mb-5 text-[13.5px] text-muted">Staff access to the Edifice admin console.</p>
+      <h1 className="mb-1 text-2xl font-bold">Sign in</h1>
+      <p className="mb-5 text-sm text-muted">Staff access to the Edifice admin console.</p>
       <form onSubmit={handleSubmit(onLogin)} noValidate>
         <Field label="Work email" htmlFor="admin-email" error={errors.email?.message}>
           <Input
@@ -230,7 +230,7 @@ export function AuthScreens() {
           />
         </Field>
         {loginError && (
-          <div className="mb-3 flex items-center gap-1.5 text-[12.5px] font-semibold text-danger">
+          <div className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-danger">
             <Icon.alert size={14} />
             {loginError}
           </div>
@@ -241,7 +241,7 @@ export function AuthScreens() {
       </form>
       <button
         onClick={() => setMode("denied")}
-        className="mt-4 w-full text-[12.5px] font-semibold text-muted"
+        className="mt-4 w-full text-xs font-semibold text-muted"
       >
         Not on the office network?
       </button>

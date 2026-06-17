@@ -29,7 +29,7 @@ export function RoleBadge({
     <span
       className={cx(
         "inline-flex items-center gap-1.25 rounded-md font-bold tracking-[.01em]",
-        small ? "h-5 px-2 text-[11px]" : "h-6 px-2.5 text-[12px]",
+        small ? "h-5 px-2 text-xs" : "h-6 px-2.5 text-xs",
       )}
       style={{ background: roleMeta.color + "14", color: roleMeta.color }}
     >
@@ -48,7 +48,7 @@ export const SEV: Record<string, { color: string; label: string }> = {
 export function Severity({ level, label }: { level: string; label?: boolean }) {
   const meta = SEV[level] || SEV.low;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ink">
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink">
       <span
         className="h-2 w-2 flex-none rounded-full"
         style={{ background: meta.color }}
@@ -72,7 +72,7 @@ export function TypeBadge({
   const Glyph = icon ? Icon[icon] : null;
   return (
     <span
-      className="inline-flex h-[22px] items-center gap-1.25 rounded-md px-2.25 text-[12px] font-bold whitespace-nowrap"
+      className="inline-flex h-5.5 items-center gap-1.25 rounded-md px-2.25 text-xs font-bold whitespace-nowrap"
       style={{ background: meta.bg, color: meta.color }}
     >
       {Glyph && <Glyph size={12} />}
@@ -129,7 +129,7 @@ export function AInput({
         inputMode={inputMode}
         aria-label={ariaLabel}
         className={cx(
-          "h-full min-w-0 flex-1 border-none bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted",
+          "h-full min-w-0 flex-1 border-none bg-transparent text-sm text-ink outline-none placeholder:text-muted",
           leftIcon ? "pr-2.5 pl-2" : "px-3",
         )}
       />
@@ -148,12 +148,12 @@ export function ALabel({
   hint?: string;
 }) {
   return (
-    <div className="mb-1.5 text-[12.5px] font-semibold text-ink">
+    <div className="mb-1.5 text-xs font-semibold text-ink">
       <span className="flex justify-between">
         {children}
         {optional && <span className="font-medium text-muted">Optional</span>}
       </span>
-      {hint && <span className="mt-0.5 block text-[11.5px] font-medium text-muted">{hint}</span>}
+      {hint && <span className="mt-0.5 block text-xs font-medium text-muted">{hint}</span>}
     </div>
   );
 }
@@ -183,7 +183,7 @@ export function Card({
         <div className="flex items-center justify-between border-b border-line px-4.5 py-3.5">
           <div>
             <div className="text-sm font-bold">{title}</div>
-            {sub && <div className="mt-0.5 text-[12.5px] text-muted">{sub}</div>}
+            {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
           </div>
           {action}
         </div>
@@ -215,7 +215,7 @@ export function Stat({
   return (
     <div className="rounded-xl border border-line bg-surface px-4.5 py-4 shadow-1">
       <div className="flex items-start justify-between">
-        <span className="text-[12.5px] font-semibold text-muted">{label}</span>
+        <span className="text-xs font-semibold text-muted">{label}</span>
         {Glyph && (
           <span
             className="grid h-7.5 w-7.5 place-items-center rounded-md"
@@ -226,7 +226,7 @@ export function Stat({
         )}
       </div>
       <div
-        className="ngn mt-2 text-[25px] font-extrabold tracking-[-.02em]"
+        className="ngn mt-2 text-2xl font-extrabold tracking-[-.02em]"
         style={{ color: money || "var(--ink)" }}
       >
         {value}
@@ -276,14 +276,14 @@ export function Table<T>({
   const minWidth = columns.reduce((sum, c) => sum + (c.w || 120), 0);
   return (
     <div className="thin-scroll overflow-x-auto">
-      <table className="w-full border-collapse text-[13.5px]" style={{ minWidth }}>
+      <table className="w-full border-collapse text-sm" style={{ minWidth }}>
         <thead>
           <tr className="border-b border-line">
             {columns.map((column) => (
               <th
                 key={column.key}
                 className={cx(
-                  "sticky top-0 bg-surface text-[11.5px] font-bold tracking-[.04em] whitespace-nowrap text-muted uppercase",
+                  "sticky top-0 bg-surface text-xs font-bold tracking-[.04em] whitespace-nowrap text-muted uppercase",
                   cellPad,
                   ALIGN_CLASS[column.align ?? "left"],
                 )}
@@ -372,7 +372,7 @@ export function Drawer({
         <div className="flex items-start justify-between border-b border-line px-5 py-4">
           <div>
             <div className="text-base font-bold">{title}</div>
-            {sub && <div className="mt-0.5 text-[12.5px] text-muted">{sub}</div>}
+            {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
           </div>
           <button
             onClick={onClose}
@@ -430,7 +430,7 @@ export function Segmented({
   size?: "sm" | "md";
 }) {
   return (
-    <div className="inline-flex gap-0.75 rounded-[9px] bg-[#EEF1EF] p-0.75">
+    <div className="inline-flex gap-0.75 rounded-md bg-[#EEF1EF] p-0.75">
       {options.map((option) => {
         const optionValue = typeof option === "string" ? option : option.value;
         const optionLabel = typeof option === "string" ? option : option.label;
@@ -440,7 +440,7 @@ export function Segmented({
             key={optionValue}
             onClick={() => onChange(optionValue)}
             className={cx(
-              "rounded-md px-3.25 text-[12.5px] font-bold whitespace-nowrap",
+              "rounded-md px-3.25 text-xs font-bold whitespace-nowrap",
               size === "sm" ? "h-7.5" : "h-8.5",
               selected ? "bg-surface text-brand shadow-1" : "bg-transparent text-muted",
             )}
@@ -472,7 +472,7 @@ export function Chip({
     <button
       onClick={onClick}
       className={cx(
-        "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-semibold whitespace-nowrap",
+        "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold whitespace-nowrap",
         active
           ? "border-primary-accent bg-primary-tint text-brand"
           : "border-line bg-surface text-muted",
@@ -483,7 +483,7 @@ export function Chip({
       {count != null && (
         <span
           className={cx(
-            "rounded-full px-1.5 text-[11px] font-bold",
+            "rounded-full px-1.5 text-xs font-bold",
             active ? "bg-primary-accent text-white" : "bg-line text-muted",
           )}
         >
@@ -511,14 +511,14 @@ export function Toggle({
       role="switch"
       aria-checked={on}
       className={cx(
-        "relative h-[23px] w-10 flex-none rounded-full transition-colors",
+        "relative h-5.75 w-10 flex-none rounded-full transition-colors",
         on ? "bg-primary-accent" : "bg-[#CDD4D0]",
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
       )}
     >
       <span
         className={cx(
-          "absolute top-[2.5px] h-[18px] w-[18px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,.2)] transition-[left]",
+          "absolute top-[2.5px] h-4.5 w-4.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,.2)] transition-[left]",
           on ? "left-[19.5px]" : "left-[2.5px]",
         )}
       />
@@ -540,8 +540,8 @@ export function PageHead({
     <div className="mb-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">{title}</h1>
-          {sub && <p className="mt-1.25 mb-0 text-[13.5px] text-muted">{sub}</p>}
+          <h1 className="m-0 text-2xl font-bold tracking-[-.02em]">{title}</h1>
+          {sub && <p className="mt-1.25 mb-0 text-sm text-muted">{sub}</p>}
         </div>
         {actions && <div className="flex flex-none gap-2.5">{actions}</div>}
       </div>

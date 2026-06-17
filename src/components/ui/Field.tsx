@@ -36,7 +36,7 @@ export function Field({
   return (
     <label htmlFor={htmlFor} className={cx("block", className ?? "mb-4")}>
       {(label || labelRight) && (
-        <span className="mb-1.5 flex items-baseline justify-between text-[12.5px] font-semibold text-ink">
+        <span className="mb-1.5 flex items-baseline justify-between text-xs font-semibold text-ink">
           {label ?? <span />}
           {optional && <span className="font-medium text-muted">Optional</span>}
           {labelRight}
@@ -124,7 +124,7 @@ export function Input({
         aria-invalid={error || undefined}
         onBlur={onBlur}
         className={cx(
-          "h-full min-w-0 flex-1 border-none bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted",
+          "h-full min-w-0 flex-1 border-none bg-transparent text-sm text-ink outline-none placeholder:text-muted",
           leftIcon ? "pr-2.5 pl-2" : "px-3",
         )}
       />
@@ -167,7 +167,7 @@ export function Textarea({
       rows={rows}
       aria-invalid={error || undefined}
       className={cx(
-        "w-full resize-y rounded-lg border bg-surface px-3 py-2 text-[13.5px] text-ink outline-none transition focus:shadow-[0_0_0_3px_rgba(25,135,84,.1)] placeholder:text-muted",
+        "w-full resize-y rounded-lg border bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:shadow-[0_0_0_3px_rgba(25,135,84,.1)] placeholder:text-muted",
         error ? "border-danger" : "border-line focus:border-primary-accent",
       )}
     />
