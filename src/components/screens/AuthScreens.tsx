@@ -56,7 +56,7 @@ export function AuthScreens() {
   } = useForm<AdminLoginValues>({
     resolver: zodResolver(adminLoginSchema),
     mode: "onTouched",
-    defaultValues: { email: "tunde.b@edifice.ng", password: "Admin123!" },
+    defaultValues: { email: "", password: "" },
   });
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
