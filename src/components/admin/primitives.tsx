@@ -3,47 +3,57 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
-  useState,
 } from "react";
 import { Icon } from "@/components/icons";
+import { cx } from "@/lib/cx";
 import { ROLES } from "@/lib/roles";
 import type { AdminRole } from "@/stores/admin-store";
 
 // ============================================================
 // Dense admin UI primitives (ported from the Claude Design admin handoff).
-// Pixel-specific, so they use inline styles bound to the design tokens.
+// Tailwind utilities for static styling; inline `style` is used only for
+// genuinely data-driven values (role/severity colours, column widths).
 // ============================================================
 
 // ---------- Role badge ----------
-export function RoleBadge({ role, size = "md" }: { role: AdminRole; size?: "sm" | "md" }) {
-  const r = ROLES[role] ?? ROLES.SUPER;
-  const s = size === "sm" ? { h: 20, fs: 11, px: 8 } : { h: 24, fs: 12, px: 10 };
+export function RoleBadge({
+  role,
+  size = "md",
+}: {
+  role: AdminRole;
+  size?: "sm" | "md";
+}) {
+  const roleMeta = ROLES[role] ?? ROLES.SUPER;
+  const small = size === "sm";
   return (
     <span
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5, height: s.h,
-        padding: `0 ${s.px}px`, borderRadius: 6, background: r.color + "14",
-        color: r.color, fontSize: s.fs, fontWeight: 700, letterSpacing: ".01em",
-      }}
+      className={cx(
+        "inline-flex items-center gap-1.25 rounded-md font-bold tracking-[.01em]",
+        small ? "h-5 px-2 text-[11px]" : "h-6 px-2.5 text-[12px]",
+      )}
+      style={{ background: roleMeta.color + "14", color: roleMeta.color }}
     >
-      <Icon.shield size={s.fs} />
-      {r.label}
+      <Icon.shield size={small ? 11 : 12} />
+      {roleMeta.label}
     </span>
   );
 }
 
 // ---------- Severity dot ----------
-export const SEV: Record<string, { c: string; l: string }> = {
-  high: { c: "#D92D20", l: "High" },
-  med: { c: "#E0A800", l: "Medium" },
-  low: { c: "#5F6368", l: "Low" },
+export const SEV: Record<string, { color: string; label: string }> = {
+  high: { color: "#D92D20", label: "High" },
+  med: { color: "#E0A800", label: "Medium" },
+  low: { color: "#5F6368", label: "Low" },
 };
 export function Severity({ level, label }: { level: string; label?: boolean }) {
-  const s = SEV[level] || SEV.low;
+  const meta = SEV[level] || SEV.low;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 600, color: "var(--ink)" }}>
-      <span style={{ width: 8, height: 8, borderRadius: 99, background: s.c, flex: "none" }} />
-      {label !== false && s.l}
+    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ink">
+      <span
+        className="h-2 w-2 flex-none rounded-full"
+        style={{ background: meta.color }}
+      />
+      {label !== false && meta.label}
     </span>
   );
 }
@@ -58,77 +68,104 @@ export function TypeBadge({
   value: string;
   icon?: string;
 }) {
-  const m = (map || {})[value] || { color: "#5F6368", bg: "#EEF0F2" };
-  const IcC = icon ? Icon[icon] : null;
+  const meta = (map || {})[value] || { color: "#5F6368", bg: "#EEF0F2" };
+  const Glyph = icon ? Icon[icon] : null;
   return (
     <span
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5, height: 22, padding: "0 9px",
-        borderRadius: 6, background: m.bg, color: m.color, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
-      }}
+      className="inline-flex h-[22px] items-center gap-1.25 rounded-md px-2.25 text-[12px] font-bold whitespace-nowrap"
+      style={{ background: meta.bg, color: meta.color }}
     >
-      {IcC && <IcC size={12} />}
+      {Glyph && <Glyph size={12} />}
       {value}
     </span>
   );
 }
 
-// ---------- Dense input ----------
+// ---------- Dense filter / search input ----------
 export function AInput({
-  value, onChange, placeholder, leftIcon, type = "text", style, width, rightSlot,
-  onKeyDown, maxLength, inputMode,
+  value,
+  onChange,
+  placeholder,
+  leftIcon,
+  type = "text",
+  width,
+  rightSlot,
+  onKeyDown,
+  maxLength,
+  inputMode,
+  ariaLabel,
+  className,
 }: {
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   leftIcon?: ReactNode;
   type?: string;
-  style?: CSSProperties;
   width?: number | string;
   rightSlot?: ReactNode;
-  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   maxLength?: number;
   inputMode?: "text" | "numeric" | "decimal";
+  ariaLabel?: string;
+  className?: string;
 }) {
-  const [f, setF] = useState(false);
   return (
     <div
-      style={{
-        position: "relative", display: "inline-flex", alignItems: "center", height: 36, width: width || "auto",
-        border: `1px solid ${f ? "var(--primary-accent)" : "var(--line)"}`, borderRadius: 8, background: "#fff",
-        boxShadow: f ? "0 0 0 3px rgba(25,135,84,.1)" : "none", transition: "all .12s", ...style,
-      }}
+      className={cx(
+        "relative inline-flex h-9 items-center rounded-lg border border-line bg-surface transition focus-within:border-primary-accent focus-within:shadow-[0_0_0_3px_rgba(25,135,84,.1)]",
+        width ? "" : "w-auto",
+        className,
+      )}
+      style={width ? { width } : undefined}
     >
-      {leftIcon && <span style={{ paddingLeft: 10, color: "var(--muted)", display: "flex" }}>{leftIcon}</span>}
+      {leftIcon && <span className="flex pl-2.5 text-muted">{leftIcon}</span>}
       <input
-        value={value} onChange={onChange} placeholder={placeholder} type={type} onKeyDown={onKeyDown}
-        maxLength={maxLength} inputMode={inputMode} onFocus={() => setF(true)} onBlur={() => setF(false)}
-        style={{
-          flex: 1, border: "none", outline: "none", background: "transparent",
-          padding: leftIcon ? "0 10px 0 8px" : "0 12px", fontSize: 13.5, color: "var(--ink)",
-          fontFamily: "var(--font)", height: "100%", minWidth: 0, width: "100%",
-        }}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        type={type}
+        onKeyDown={onKeyDown}
+        maxLength={maxLength}
+        inputMode={inputMode}
+        aria-label={ariaLabel}
+        className={cx(
+          "h-full min-w-0 flex-1 border-none bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted",
+          leftIcon ? "pr-2.5 pl-2" : "px-3",
+        )}
       />
       {rightSlot}
     </div>
   );
 }
 
-export function ALabel({ children, optional, hint }: { children: ReactNode; optional?: boolean; hint?: string }) {
+export function ALabel({
+  children,
+  optional,
+  hint,
+}: {
+  children: ReactNode;
+  optional?: boolean;
+  hint?: string;
+}) {
   return (
-    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
-      <span style={{ display: "flex", justifyContent: "space-between" }}>
+    <div className="mb-1.5 text-[12.5px] font-semibold text-ink">
+      <span className="flex justify-between">
         {children}
-        {optional && <span style={{ color: "var(--muted)", fontWeight: 500 }}>Optional</span>}
+        {optional && <span className="font-medium text-muted">Optional</span>}
       </span>
-      {hint && <span style={{ display: "block", color: "var(--muted)", fontWeight: 500, fontSize: 11.5, marginTop: 2 }}>{hint}</span>}
+      {hint && <span className="mt-0.5 block text-[11.5px] font-medium text-muted">{hint}</span>}
     </div>
   );
 }
 
 // ---------- Card ----------
 export function Card({
-  children, style, pad = 18, title, action, sub,
+  children,
+  style,
+  pad = 18,
+  title,
+  action,
+  sub,
 }: {
   children: ReactNode;
   style?: CSSProperties;
@@ -138,12 +175,15 @@ export function Card({
   sub?: ReactNode;
 }) {
   return (
-    <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, boxShadow: "var(--sh-1)", ...style }}>
+    <div
+      className="rounded-xl border border-line bg-surface shadow-1"
+      style={style}
+    >
       {title && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--line)" }}>
+        <div className="flex items-center justify-between border-b border-line px-4.5 py-3.5">
           <div>
-            <div style={{ fontSize: 14.5, fontWeight: 700 }}>{title}</div>
-            {sub && <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{sub}</div>}
+            <div className="text-sm font-bold">{title}</div>
+            {sub && <div className="mt-0.5 text-[12.5px] text-muted">{sub}</div>}
           </div>
           {action}
         </div>
@@ -153,9 +193,15 @@ export function Card({
   );
 }
 
-// ---------- Stat ----------
+// ---------- Stat / widget ----------
 export function Stat({
-  label, value, sub, icon, tone = "var(--brand)", trend, money,
+  label,
+  value,
+  sub,
+  icon,
+  tone = "var(--brand)",
+  trend,
+  money,
 }: {
   label: string;
   value: ReactNode;
@@ -165,21 +211,29 @@ export function Stat({
   trend?: boolean;
   money?: string;
 }) {
-  const IcC = icon ? Icon[icon] : null;
+  const Glyph = icon ? Icon[icon] : null;
   return (
-    <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "16px 18px", boxShadow: "var(--sh-1)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>{label}</span>
-        {IcC && (
-          <span style={{ width: 30, height: 30, borderRadius: 8, background: tone + "14", color: tone, display: "grid", placeItems: "center" }}>
-            <IcC size={16} />
+    <div className="rounded-xl border border-line bg-surface px-4.5 py-4 shadow-1">
+      <div className="flex items-start justify-between">
+        <span className="text-[12.5px] font-semibold text-muted">{label}</span>
+        {Glyph && (
+          <span
+            className="grid h-7.5 w-7.5 place-items-center rounded-md"
+            style={{ background: tone + "14", color: tone }}
+          >
+            <Glyph size={16} />
           </span>
         )}
       </div>
-      <div className="ngn" style={{ fontSize: 25, fontWeight: 800, letterSpacing: "-.02em", marginTop: 8, color: money || "var(--ink)" }}>{value}</div>
+      <div
+        className="ngn mt-2 text-[25px] font-extrabold tracking-[-.02em]"
+        style={{ color: money || "var(--ink)" }}
+      >
+        {value}
+      </div>
       {sub && (
-        <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 5 }}>
-          {trend && <Icon.trend size={13} style={{ color: "var(--success)" }} />}
+        <div className="mt-1 flex items-center gap-1.25 text-xs text-muted">
+          {trend && <Icon.trend size={13} className="text-success" />}
           {sub}
         </div>
       )}
@@ -194,10 +248,19 @@ export interface Column<T> {
   w?: number;
   align?: "left" | "right" | "center";
   wrap?: boolean;
-  render?: (row: T, i: number) => ReactNode;
+  render?: (row: T, index: number) => ReactNode;
 }
+const ALIGN_CLASS = { left: "text-left", right: "text-right", center: "text-center" } as const;
+
 export function Table<T>({
-  columns, rows, onRowClick, activeId, getId, empty, dense, rowStyle,
+  columns,
+  rows,
+  onRowClick,
+  activeId,
+  getId,
+  empty,
+  dense,
+  rowStyle,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -208,40 +271,57 @@ export function Table<T>({
   dense?: boolean;
   rowStyle?: (row: T) => CSSProperties;
 }) {
-  if (!rows.length && empty) return <div style={{ padding: "10px 0" }}>{empty}</div>;
+  if (!rows.length && empty) return <div className="py-2.5">{empty}</div>;
+  const cellPad = dense ? "px-3 py-2.25" : "px-3.5 py-2.75";
+  const minWidth = columns.reduce((sum, c) => sum + (c.w || 120), 0);
   return (
-    <div style={{ overflowX: "auto" }} className="thin-scroll">
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, minWidth: columns.reduce((s, c) => s + (c.w || 120), 0) }}>
+    <div className="thin-scroll overflow-x-auto">
+      <table className="w-full border-collapse text-[13.5px]" style={{ minWidth }}>
         <thead>
-          <tr style={{ borderBottom: "1px solid var(--line)" }}>
-            {columns.map((c) => (
-              <th key={c.key} style={{
-                textAlign: c.align || "left", padding: dense ? "9px 12px" : "11px 14px", fontSize: 11.5, fontWeight: 700,
-                color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".04em", whiteSpace: "nowrap",
-                width: c.w, position: "sticky", top: 0, background: "#fff",
-              }}>{c.label}</th>
+          <tr className="border-b border-line">
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                className={cx(
+                  "sticky top-0 bg-surface text-[11.5px] font-bold tracking-[.04em] whitespace-nowrap text-muted uppercase",
+                  cellPad,
+                  ALIGN_CLASS[column.align ?? "left"],
+                )}
+                style={{ width: column.w }}
+              >
+                {column.label}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => {
+          {rows.map((row, index) => {
             const id = getId ? getId(row) : (row as { id?: string }).id;
             const active = activeId != null && id === activeId;
             return (
-              <tr key={id || i} onClick={onRowClick ? () => onRowClick(row) : undefined}
-                style={{
-                  borderBottom: "1px solid #EEF1EF", cursor: onRowClick ? "pointer" : "default",
-                  background: active ? "var(--primary-tint)" : "transparent", transition: "background .1s",
-                  ...(rowStyle ? rowStyle(row) : {}),
-                }}
-                onMouseEnter={(e) => { if (onRowClick && !active) e.currentTarget.style.background = "#F7F9F8"; }}
-                onMouseLeave={(e) => { if (onRowClick && !active) e.currentTarget.style.background = "transparent"; }}>
-                {columns.map((c) => (
-                  <td key={c.key} style={{
-                    textAlign: c.align || "left", padding: dense ? "9px 12px" : "11px 14px",
-                    whiteSpace: c.wrap ? "normal" : "nowrap", color: "var(--ink)", verticalAlign: "middle",
-                  }}>
-                    {c.render ? c.render(row, i) : String((row as Record<string, unknown>)[c.key] ?? "")}
+              <tr
+                key={id || index}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cx(
+                  "border-b border-[#EEF1EF] transition-colors",
+                  onRowClick && "cursor-pointer",
+                  active ? "bg-primary-tint" : onRowClick && "hover:bg-canvas",
+                )}
+                style={rowStyle ? rowStyle(row) : undefined}
+              >
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className={cx(
+                      "align-middle text-ink",
+                      cellPad,
+                      column.wrap ? "whitespace-normal" : "whitespace-nowrap",
+                      ALIGN_CLASS[column.align ?? "left"],
+                    )}
+                  >
+                    {column.render
+                      ? column.render(row, index)
+                      : String((row as Record<string, unknown>)[column.key] ?? "")}
                   </td>
                 ))}
               </tr>
@@ -255,7 +335,13 @@ export function Table<T>({
 
 // ---------- Right drawer ----------
 export function Drawer({
-  open, onClose, title, sub, children, footer, width = 480,
+  open,
+  onClose,
+  title,
+  sub,
+  children,
+  footer,
+  width = 480,
 }: {
   open: boolean;
   onClose: () => void;
@@ -266,61 +352,101 @@ export function Drawer({
   width?: number;
 }) {
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 80, pointerEvents: open ? "auto" : "none" }}>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(16,24,40,.4)", opacity: open ? 1 : 0, transition: "opacity .25s" }} />
-      <div style={{
-        position: "absolute", top: 0, right: 0, bottom: 0, width, maxWidth: "92vw", background: "#fff",
-        boxShadow: "-12px 0 40px rgba(16,24,40,.18)", transform: open ? "translateX(0)" : "translateX(102%)",
-        transition: "transform .3s cubic-bezier(.32,.72,0,1)", display: "flex", flexDirection: "column",
-      }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
+    <div
+      className={cx("fixed inset-0 z-80", open ? "pointer-events-auto" : "pointer-events-none")}
+    >
+      <div
+        onClick={onClose}
+        className={cx(
+          "absolute inset-0 bg-[rgba(16,24,40,.4)] transition-opacity duration-250",
+          open ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <div
+        className={cx(
+          "absolute top-0 right-0 bottom-0 flex max-w-[92vw] flex-col bg-surface shadow-[-12px_0_40px_rgba(16,24,40,.18)] transition-transform duration-300 ease-[cubic-bezier(.32,.72,0,1)]",
+          open ? "translate-x-0" : "translate-x-[102%]",
+        )}
+        style={{ width }}
+      >
+        <div className="flex items-start justify-between border-b border-line px-5 py-4">
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>{title}</div>
-            {sub && <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{sub}</div>}
+            <div className="text-base font-bold">{title}</div>
+            {sub && <div className="mt-0.5 text-[12.5px] text-muted">{sub}</div>}
           </div>
-          <button onClick={onClose} style={{ border: "none", background: "var(--canvas)", width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--muted)" }}>
+          <button
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-md bg-canvas text-muted"
+            aria-label="Close"
+          >
             <Icon.close size={18} />
           </button>
         </div>
-        <div className="thin-scroll" style={{ flex: 1, overflowY: "auto", padding: 20 }}>{children}</div>
-        {footer && <div style={{ padding: "14px 20px", borderTop: "1px solid var(--line)", display: "flex", gap: 10, justifyContent: "flex-end" }}>{footer}</div>}
+        <div className="thin-scroll flex-1 overflow-y-auto p-5">{children}</div>
+        {footer && (
+          <div className="flex justify-end gap-2.5 border-t border-line px-5 py-3.5">{footer}</div>
+        )}
       </div>
     </div>
   );
 }
 
-// ---------- Modal ----------
-export function Modal({ open, onClose, children, width = 440 }: { open: boolean; onClose: () => void; children: ReactNode; width?: number }) {
+// ---------- Centered modal ----------
+export function Modal({
+  open,
+  onClose,
+  children,
+  width = 440,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  width?: number;
+}) {
   if (!open) return null;
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 90, display: "grid", placeItems: "center", padding: 24 }}>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(16,24,40,.5)", animation: "ed-fade .15s" }} />
-      <div style={{ position: "relative", background: "#fff", borderRadius: 14, width, maxWidth: "100%", boxShadow: "var(--sh-pop)", animation: "ed-scale-in .2s", overflow: "hidden" }}>{children}</div>
+    <div className="fixed inset-0 z-90 grid place-items-center p-6">
+      <div onClick={onClose} className="absolute inset-0 bg-[rgba(16,24,40,.5)] animate-[ed-fade_.15s]" />
+      <div
+        className="relative overflow-hidden rounded-lg bg-surface shadow-pop animate-[ed-scale-in_.2s]"
+        style={{ width, maxWidth: "100%" }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
 
 // ---------- Segmented control ----------
 export function Segmented({
-  options, value, onChange, size = "md",
+  options,
+  value,
+  onChange,
+  size = "md",
 }: {
   options: (string | { value: string; label: string })[];
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   size?: "sm" | "md";
 }) {
-  const h = size === "sm" ? 30 : 34;
   return (
-    <div style={{ display: "inline-flex", gap: 3, background: "#EEF1EF", borderRadius: 9, padding: 3 }}>
-      {options.map((o) => {
-        const v = typeof o === "string" ? o : o.value;
-        const l = typeof o === "string" ? o : o.label;
-        const on = value === v;
+    <div className="inline-flex gap-0.75 rounded-[9px] bg-[#EEF1EF] p-0.75">
+      {options.map((option) => {
+        const optionValue = typeof option === "string" ? option : option.value;
+        const optionLabel = typeof option === "string" ? option : option.label;
+        const selected = value === optionValue;
         return (
-          <button key={v} onClick={() => onChange(v)} style={{
-            height: h, padding: "0 13px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 700,
-            background: on ? "#fff" : "transparent", color: on ? "var(--brand)" : "var(--muted)", boxShadow: on ? "var(--sh-1)" : "none", whiteSpace: "nowrap",
-          }}>{l}</button>
+          <button
+            key={optionValue}
+            onClick={() => onChange(optionValue)}
+            className={cx(
+              "rounded-md px-3.25 text-[12.5px] font-bold whitespace-nowrap",
+              size === "sm" ? "h-7.5" : "h-8.5",
+              selected ? "bg-surface text-brand shadow-1" : "bg-transparent text-muted",
+            )}
+          >
+            {optionLabel}
+          </button>
         );
       })}
     </div>
@@ -329,7 +455,11 @@ export function Segmented({
 
 // ---------- Filter chip ----------
 export function Chip({
-  children, active, onClick, icon, count,
+  children,
+  active,
+  onClick,
+  icon,
+  count,
 }: {
   children: ReactNode;
   active?: boolean;
@@ -337,50 +467,83 @@ export function Chip({
   icon?: string;
   count?: number | null;
 }) {
-  const IcC = icon ? Icon[icon] : null;
+  const Glyph = icon ? Icon[icon] : null;
   return (
-    <button onClick={onClick} style={{
-      display: "inline-flex", alignItems: "center", gap: 6, height: 32, padding: "0 12px", borderRadius: 8, cursor: "pointer",
-      border: `1px solid ${active ? "var(--primary-accent)" : "var(--line)"}`, background: active ? "var(--primary-tint)" : "#fff",
-      color: active ? "var(--brand)" : "var(--muted)", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap",
-    }}>
-      {IcC && <IcC size={14} />}
+    <button
+      onClick={onClick}
+      className={cx(
+        "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-semibold whitespace-nowrap",
+        active
+          ? "border-primary-accent bg-primary-tint text-brand"
+          : "border-line bg-surface text-muted",
+      )}
+    >
+      {Glyph && <Glyph size={14} />}
       {children}
       {count != null && (
-        <span style={{ background: active ? "var(--primary-accent)" : "var(--line)", color: active ? "#fff" : "var(--muted)", borderRadius: 99, fontSize: 11, fontWeight: 700, padding: "1px 6px" }}>{count}</span>
+        <span
+          className={cx(
+            "rounded-full px-1.5 text-[11px] font-bold",
+            active ? "bg-primary-accent text-white" : "bg-line text-muted",
+          )}
+        >
+          {count}
+        </span>
       )}
     </button>
   );
 }
 
 // ---------- Toggle ----------
-export function Toggle({ on, onChange, disabled }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+export function Toggle({
+  on,
+  onChange,
+  disabled,
+}: {
+  on: boolean;
+  onChange: (on: boolean) => void;
+  disabled?: boolean;
+}) {
   return (
-    <button onClick={disabled ? undefined : () => onChange(!on)} disabled={disabled} style={{
-      width: 40, height: 23, borderRadius: 99, border: "none", cursor: disabled ? "not-allowed" : "pointer",
-      background: on ? "var(--primary-accent)" : "#CDD4D0", position: "relative", transition: "background .18s", opacity: disabled ? 0.5 : 1, flex: "none",
-    }}>
-      <span style={{ position: "absolute", top: 2.5, left: on ? 19.5 : 2.5, width: 18, height: 18, borderRadius: 99, background: "#fff", transition: "left .18s", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
+    <button
+      onClick={disabled ? undefined : () => onChange(!on)}
+      disabled={disabled}
+      role="switch"
+      aria-checked={on}
+      className={cx(
+        "relative h-[23px] w-10 flex-none rounded-full transition-colors",
+        on ? "bg-primary-accent" : "bg-[#CDD4D0]",
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+      )}
+    >
+      <span
+        className={cx(
+          "absolute top-[2.5px] h-[18px] w-[18px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,.2)] transition-[left]",
+          on ? "left-[19.5px]" : "left-[2.5px]",
+        )}
+      />
     </button>
   );
 }
 
 // ---------- Page header ----------
 export function PageHead({
-  title, sub, actions,
+  title,
+  sub,
+  actions,
 }: {
   title: ReactNode;
   sub?: ReactNode;
   actions?: ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+    <div className="mb-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 700, letterSpacing: "-.02em" }}>{title}</h1>
-          {sub && <p style={{ margin: "5px 0 0", fontSize: 13.5, color: "var(--muted)" }}>{sub}</p>}
+          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">{title}</h1>
+          {sub && <p className="mt-1.25 mb-0 text-[13.5px] text-muted">{sub}</p>}
         </div>
-        {actions && <div style={{ display: "flex", gap: 10, flex: "none" }}>{actions}</div>}
+        {actions && <div className="flex flex-none gap-2.5">{actions}</div>}
       </div>
     </div>
   );

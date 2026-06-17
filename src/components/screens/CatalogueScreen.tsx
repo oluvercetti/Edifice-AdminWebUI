@@ -23,14 +23,14 @@ const FILTERS = ["All", "Draft", "Ready", "Approved", "Published", "In construct
 export function CatalogueScreen() {
   const router = useRouter();
   const toast = useToast();
-  const qc = useQueryClient();
-  const viewAs = useAdminStore((s) => s.viewAs);
+  const queryClient = useQueryClient();
+  const viewAs = useAdminStore((store) => store.viewAs);
   const readOnly = isReadOnly(viewAs);
 
   const [filter, setFilter] = useState("All");
 
   const { state, data, retry } = useScreenState(useCatalogue(), {
-    isEmpty: (d) => d.length === 0,
+    isEmpty: (rows) => rows.length === 0,
   });
 
   const head = (
@@ -53,8 +53,8 @@ export function CatalogueScreen() {
         {head}
         <Card>
           <Skeleton height={34} style={{ marginBottom: 14, width: 320 }} />
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} height={42} style={{ marginBottom: 8 }} />
+          {[0, 1, 2, 3, 4].map((index) => (
+            <Skeleton key={index} height={42} style={{ marginBottom: 8 }} />
           ))}
         </Card>
       </div>
@@ -90,14 +90,15 @@ export function CatalogueScreen() {
     );
   }
 
-  const rows = data ?? [];
-  const filtered = filter === "All" ? rows : rows.filter((r) => r.status === filter);
+  const projects = data ?? [];
+  const filtered =
+    filter === "All" ? projects : projects.filter((project) => project.status === filter);
 
-  function toggleFeature(r: CatalogueRow) {
-    featureProject(r.id, !r.featured)
+  function toggleFeature(project: CatalogueRow) {
+    featureProject(project.id, !project.featured)
       .then(() => {
-        void qc.invalidateQueries({ queryKey: queryKeys.catalogue });
-        toast(r.featured ? "Unfeatured" : "Featured on Discover");
+        void queryClient.invalidateQueries({ queryKey: queryKeys.catalogue });
+        toast(project.featured ? "Unfeatured" : "Featured on Discover");
       })
       .catch(() => toast("Failed to update featuring", "error"));
   }
@@ -107,20 +108,12 @@ export function CatalogueScreen() {
       key: "title",
       label: "Project",
       w: 230,
-      render: (r) => (
-        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-          <span
-            style={{
-              width: 40,
-              height: 30,
-              borderRadius: 6,
-              background: "var(--primary-tint)",
-              flex: "none",
-            }}
-          />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, color: "var(--ink)" }}>{r.title}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{r.location}</div>
+      render: (project) => (
+        <div className="flex items-center gap-2.75">
+          <span className="h-7.5 w-10 flex-none rounded-sm bg-primary-tint" />
+          <div className="min-w-0">
+            <div className="font-bold text-ink">{project.title}</div>
+            <div className="text-xs text-muted">{project.location}</div>
           </div>
         </div>
       ),
@@ -129,16 +122,16 @@ export function CatalogueScreen() {
       key: "status",
       label: "Status",
       w: 130,
-      render: (r) => <Pill status={r.status} />,
+      render: (project) => <Pill status={project.status} />,
     },
     {
       key: "pctFunded",
       label: "% Funded",
       w: 120,
-      render: (r) => (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Progress value={r.pctFunded} height={5} style={{ width: 56 }} />
-          <span style={{ fontSize: 12.5, color: "var(--muted)" }}>{r.pctFunded}%</span>
+      render: (project) => (
+        <div className="flex items-center gap-2">
+          <Progress value={project.pctFunded} height={5} style={{ width: 56 }} />
+          <span className="text-[12.5px] text-muted">{project.pctFunded}%</span>
         </div>
       ),
     },
@@ -147,39 +140,33 @@ export function CatalogueScreen() {
       label: "Raised",
       w: 130,
       align: "right",
-      render: (r) => <span style={{ fontWeight: 700 }}>{fmtNGN(r.raised)}</span>,
+      render: (project) => <span className="font-bold">{fmtNGN(project.raised)}</span>,
     },
     {
       key: "target",
       label: "Target",
       w: 130,
       align: "right",
-      render: (r) => <span style={{ color: "var(--muted)" }}>{fmtNGN(r.target)}</span>,
+      render: (project) => <span className="text-muted">{fmtNGN(project.target)}</span>,
     },
     {
       key: "featured",
       label: "Featured",
       w: 80,
       align: "center",
-      render: (r) =>
+      render: (project) =>
         readOnly ? (
-          <Icon.star size={18} color={r.featured ? "var(--warning)" : "var(--line)"} />
+          <Icon.star size={18} color={project.featured ? "var(--warning)" : "var(--line)"} />
         ) : (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleFeature(r);
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleFeature(project);
             }}
-            title={r.featured ? "Remove feature" : "Feature on Discover"}
-            style={{
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              display: "inline-flex",
-              padding: 4,
-            }}
+            title={project.featured ? "Remove feature" : "Feature on Discover"}
+            className="inline-flex cursor-pointer border-none bg-transparent p-1"
           >
-            <Icon.star size={18} color={r.featured ? "var(--warning)" : "var(--line)"} />
+            <Icon.star size={18} color={project.featured ? "var(--warning)" : "var(--line)"} />
           </button>
         ),
     },
@@ -187,10 +174,8 @@ export function CatalogueScreen() {
       key: "updatedAt",
       label: "Updated",
       w: 150,
-      render: (r) => (
-        <span style={{ color: "var(--muted)", fontSize: 12.5 }}>
-          {shortDateTime(r.updatedAt)}
-        </span>
+      render: (project) => (
+        <span className="text-[12.5px] text-muted">{shortDateTime(project.updatedAt)}</span>
       ),
     },
   ];
@@ -198,32 +183,23 @@ export function CatalogueScreen() {
   return (
     <div>
       {head}
-      <div style={{ marginBottom: 14 }}>
+      <div className="mb-3.5">
         <Segmented options={FILTERS} value={filter} onChange={setFilter} />
       </div>
       <Card pad={0}>
         <Table
           columns={columns}
           rows={filtered}
-          getId={(r) => r.id}
-          onRowClick={(r) => router.push(`/catalogue/${r.id}`)}
+          getId={(project) => project.id}
+          onRowClick={(project) => router.push(`/catalogue/${project.id}`)}
           empty={
-            <div style={{ padding: "8px 14px", color: "var(--muted)", fontSize: 13 }}>
+            <div className="px-3.5 py-2 text-[13px] text-muted">
               No projects match this filter.
             </div>
           }
         />
       </Card>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          marginTop: 12,
-          fontSize: 12.5,
-          color: "var(--muted)",
-        }}
-      >
+      <div className="mt-3 flex items-center gap-1.75 text-[12.5px] text-muted">
         <Icon.layers size={14} />
         Published projects appear on Discover in this order.
       </div>

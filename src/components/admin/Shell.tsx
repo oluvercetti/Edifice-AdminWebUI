@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { AInput } from "@/components/admin/primitives";
+import { cx } from "@/lib/cx";
 import { useAdminStore, type AdminRole } from "@/stores/admin-store";
-import { ADMIN_NAV, ROLES, isReadOnly, navForRole } from "@/lib/roles";
+import { ROLES, isReadOnly, navForRole } from "@/lib/roles";
 import { logout } from "@/lib/auth";
 
 // ============================================================
@@ -13,53 +14,64 @@ import { logout } from "@/lib/auth";
 // "view console as role" switcher, environment indicator, and read-only badge.
 // ============================================================
 
-function initials(name: string): string {
-  return name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+function initialsOf(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
   const pathname = usePathname();
-  const items = navForRole(viewAs);
+  const navItems = navForRole(viewAs);
   return (
-    <aside style={{ width: 232, flex: "none", background: "#0D1F17", color: "#cdd9d2", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
-      <div style={{ padding: "18px 18px 14px", display: "flex", alignItems: "center", gap: 9 }}>
-        <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--primary-accent)", display: "grid", placeItems: "center", flex: "none" }}>
+    <aside className="sticky top-0 flex h-screen w-58 flex-none flex-col bg-[#0D1F17] text-[#cdd9d2]">
+      <div className="flex items-center gap-2.25 px-4.5 pt-4.5 pb-3.5">
+        <span className="grid h-7.5 w-7.5 flex-none place-items-center rounded-md bg-primary-accent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M5 20V7l7-3.5L19 7v13" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" />
             <path d="M9 20v-4h6v4M9.5 9.5h5M9.5 13h5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </span>
         <div>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: "#fff", letterSpacing: "-.01em" }}>Edifice</div>
-          <div style={{ fontSize: 10.5, color: "#6f8a7c", fontWeight: 600, letterSpacing: ".04em" }}>ADMIN CONSOLE</div>
+          <div className="text-[15.5px] font-bold tracking-[-.01em] text-white">Edifice</div>
+          <div className="text-[10.5px] font-semibold tracking-[.04em] text-[#6f8a7c]">ADMIN CONSOLE</div>
         </div>
       </div>
-      <nav className="thin-scroll" style={{ flex: 1, overflowY: "auto", padding: "6px 10px" }}>
-        {items.map((n) => {
-          const IcC = Icon[n.icon];
-          const on = n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);
+      <nav className="thin-scroll flex-1 overflow-y-auto px-2.5 py-1.5">
+        {navItems.map((item) => {
+          const Glyph = Icon[item.icon];
+          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
-            <Link key={n.id} href={n.href} style={{
-              display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 11px", borderRadius: 8,
-              cursor: "pointer", marginBottom: 2, textDecoration: "none",
-              background: on ? "rgba(25,135,84,.22)" : "transparent", color: on ? "#fff" : "#a9bcb1",
-              fontSize: 13.5, fontWeight: on ? 700 : 500, position: "relative",
-            }}>
-              <IcC size={18} />
-              <span style={{ flex: 1 }}>{n.label}</span>
-              {n.badge === "live" && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "#7ee0a8" }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: "#3ddc84", animation: "ed-pulse 1.6s infinite" }} />LIVE
+            <Link
+              key={item.id}
+              href={item.href}
+              className={cx(
+                "relative mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2.75 py-2.25 text-[13.5px] no-underline",
+                active ? "bg-[rgba(25,135,84,.22)] font-bold text-white" : "font-medium text-[#a9bcb1]",
+              )}
+            >
+              <Glyph size={18} />
+              <span className="flex-1">{item.label}</span>
+              {item.badge === "live" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#7ee0a8]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#3ddc84] animate-[ed-pulse_1.6s_infinite]" />
+                  LIVE
                 </span>
               )}
-              {on && <span style={{ position: "absolute", left: -10, top: 8, bottom: 8, width: 3, borderRadius: 99, background: "var(--primary-accent)" }} />}
+              {active && (
+                <span className="absolute top-2 bottom-2 -left-2.5 w-0.75 rounded-full bg-primary-accent" />
+              )}
             </Link>
           );
         })}
       </nav>
-      <div style={{ padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,.08)", fontSize: 11, color: "#6f8a7c" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 7, height: 7, borderRadius: 99, background: "#3ddc84" }} />All systems operational
+      <div className="border-t border-white/8 px-3.5 py-3 text-[11px] text-[#6f8a7c]">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.75 w-1.75 rounded-full bg-[#3ddc84]" />
+          All systems operational
         </div>
       </div>
     </aside>
@@ -68,61 +80,88 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
 
 function TopBar() {
   const { admin, viewAs, setViewAs } = useAdminStore();
-  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   if (!admin) return null;
   const role = viewAs ?? admin.roles[0];
-  const r = ROLES[role];
+  const roleMeta = ROLES[role];
   const readOnly = isReadOnly(viewAs);
-  // A SUPER admin can preview any role; everyone else can only view their own roles.
+  // A SUPER admin may preview any role; everyone else only their own.
   const selectableRoles = admin.roles.includes("SUPER")
     ? (Object.keys(ROLES) as AdminRole[])
     : admin.roles;
 
   return (
-    <header style={{ height: 60, flex: "none", background: "#fff", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 16, padding: "0 24px", position: "sticky", top: 0, zIndex: 40 }}>
-      <AInput placeholder="Search investors, transactions, projects…" leftIcon={<Icon.search size={16} />} width={340} />
-      <div style={{ flex: 1 }} />
+    <header className="sticky top-0 z-40 flex h-15 flex-none items-center gap-4 border-b border-line bg-surface px-6">
+      <AInput
+        placeholder="Search investors, transactions, projects…"
+        ariaLabel="Search"
+        leftIcon={<Icon.search size={16} />}
+        width={340}
+      />
+      <div className="flex-1" />
       {readOnly && (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: "0 11px", borderRadius: 7, background: "#EEF0F2", color: "var(--muted)", fontSize: 12, fontWeight: 700 }}>
-          <Icon.eye size={14} />Read-only
+        <span className="inline-flex h-7 items-center gap-1.5 rounded-md bg-[#EEF0F2] px-2.75 text-xs font-bold text-muted">
+          <Icon.eye size={14} />
+          Read-only
         </span>
       )}
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: "0 11px", borderRadius: 7, background: "#FCF3D9", color: "#9a7b00", fontSize: 12, fontWeight: 700 }}>
-        <span style={{ width: 7, height: 7, borderRadius: 99, background: "currentColor" }} />Development
+      <span className="inline-flex h-7 items-center gap-1.5 rounded-md bg-[#FCF3D9] px-2.75 text-xs font-bold text-[#9a7b00]">
+        <span className="h-1.75 w-1.75 rounded-full bg-current" />
+        Development
       </span>
-      <button style={{ position: "relative", width: 38, height: 38, borderRadius: 9, border: "1px solid var(--line)", background: "#fff", display: "grid", placeItems: "center", cursor: "pointer", color: "var(--ink)" }}>
+      <button className="grid h-9.5 w-9.5 place-items-center rounded-lg border border-line bg-surface text-ink" aria-label="Alerts">
         <Icon.bell size={18} />
       </button>
-      <div style={{ position: "relative" }}>
-        <button onClick={() => setOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 9, height: 40, padding: "0 8px 0 10px", borderRadius: 10, border: "1px solid var(--line)", background: "#fff", cursor: "pointer" }}>
-          <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--brand)", color: "#fff", display: "grid", placeItems: "center", fontSize: 12.5, fontWeight: 700 }}>{initials(admin.name)}</span>
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.1 }}>{admin.name}</div>
-            <div style={{ fontSize: 11, color: r.color, fontWeight: 700 }}>{r.label}</div>
-          </div>
-          <Icon.chevD size={15} style={{ color: "var(--muted)" }} />
+      <div className="relative">
+        <button
+          onClick={() => setMenuOpen((open) => !open)}
+          className="flex h-10 items-center gap-2.25 rounded-[10px] border border-line bg-surface py-0 pr-2 pl-2.5"
+        >
+          <span className="grid h-7.5 w-7.5 place-items-center rounded-md bg-brand text-[12.5px] font-bold text-white">
+            {initialsOf(admin.name)}
+          </span>
+          <span className="text-left">
+            <span className="block text-[12.5px] leading-tight font-bold">{admin.name}</span>
+            <span className="block text-[11px] font-bold" style={{ color: roleMeta.color }}>
+              {roleMeta.label}
+            </span>
+          </span>
+          <Icon.chevD size={15} className="text-muted" />
         </button>
-        {open && (
+        {menuOpen && (
           <>
-            <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 50 }} />
-            <div style={{ position: "absolute", top: 46, right: 0, width: 260, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, boxShadow: "var(--sh-pop)", zIndex: 51, padding: 8, animation: "ed-fade .12s" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em", padding: "6px 10px 8px" }}>View console as role</div>
-              {selectableRoles.map((k) => (
-                <button key={k} onClick={() => { setViewAs(k); setOpen(false); }} style={{
-                  display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 10px", borderRadius: 8,
-                  border: "none", cursor: "pointer", background: role === k ? "var(--primary-tint)" : "transparent", textAlign: "left",
-                }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 99, background: ROLES[k].color, flex: "none" }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{ROLES[k].label}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3, marginTop: 1 }}>{ROLES[k].desc}</div>
-                  </div>
-                  {role === k && <Icon.check size={15} style={{ color: "var(--primary-accent)" }} />}
+            <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[50]" />
+            <div className="absolute top-11.5 right-0 z-[51] w-65 rounded-xl border border-line bg-surface p-2 shadow-pop animate-[ed-fade_.12s]">
+              <div className="px-2.5 pt-1.5 pb-2 text-[11px] font-bold tracking-[.05em] text-muted uppercase">
+                View console as role
+              </div>
+              {selectableRoles.map((roleKey) => (
+                <button
+                  key={roleKey}
+                  onClick={() => {
+                    setViewAs(roleKey);
+                    setMenuOpen(false);
+                  }}
+                  className={cx(
+                    "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-left",
+                    role === roleKey && "bg-primary-tint",
+                  )}
+                >
+                  <span className="h-2 w-2 flex-none rounded-full" style={{ background: ROLES[roleKey].color }} />
+                  <span className="flex-1">
+                    <span className="block text-[13px] font-bold text-ink">{ROLES[roleKey].label}</span>
+                    <span className="mt-px block text-[11.5px] leading-snug text-muted">{ROLES[roleKey].desc}</span>
+                  </span>
+                  {role === roleKey && <Icon.check size={15} className="text-primary-accent" />}
                 </button>
               ))}
-              <div style={{ height: 1, background: "var(--line)", margin: "8px 0" }} />
-              <button onClick={() => void logout()} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 10px", borderRadius: 8, border: "none", cursor: "pointer", background: "transparent", color: "var(--danger)", fontSize: 13, fontWeight: 600 }}>
-                <Icon.logout size={16} />Sign out
+              <div className="my-2 h-px bg-line" />
+              <button
+                onClick={() => void logout()}
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-[13px] font-semibold text-danger"
+              >
+                <Icon.logout size={16} />
+                Sign out
               </button>
             </div>
           </>
@@ -133,17 +172,14 @@ function TopBar() {
 }
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const viewAs = useAdminStore((s) => s.viewAs);
+  const viewAs = useAdminStore((state) => state.viewAs);
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--canvas)" }}>
+    <div className="flex min-h-screen bg-canvas">
       <Sidebar viewAs={viewAs} />
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main style={{ flex: 1, padding: "26px 28px 60px", maxWidth: 1320, width: "100%", margin: "0 auto" }}>{children}</main>
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-7 pt-6.5 pb-15">{children}</main>
       </div>
     </div>
   );
 }
-
-// Re-export for nav guards used by screens (active item helpers).
-export { ADMIN_NAV };

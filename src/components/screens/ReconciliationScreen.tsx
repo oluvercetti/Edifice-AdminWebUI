@@ -7,6 +7,7 @@ import { ErrorState, Skeleton } from "@/components/ui/feedback";
 import type { Reconciliation } from "@/lib/api/types";
 import { useReconciliation } from "@/lib/api/queries";
 import { useScreenState } from "@/lib/api/use-resource";
+import { cx } from "@/lib/cx";
 import { fmtNGN } from "@/lib/money";
 import { isReadOnly } from "@/lib/roles";
 import { shortDateTime } from "@/lib/txn";
@@ -44,7 +45,7 @@ export function ReconciliationScreen() {
       />
 
       {state === "loading" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div className="flex flex-col gap-4.5">
           <Skeleton height={140} />
           <Skeleton height={220} />
         </div>
@@ -53,13 +54,13 @@ export function ReconciliationScreen() {
       {state === "error" && <ErrorState onRetry={retry} />}
 
       {state === "ready" && data && (
-        <Console data={data} readOnly={readOnly} toast={toast} />
+        <ReconciliationConsole data={data} readOnly={readOnly} toast={toast} />
       )}
     </div>
   );
 }
 
-function Console({
+function ReconciliationConsole({
   data,
   readOnly,
   toast,
@@ -68,29 +69,13 @@ function Console({
   readOnly: boolean;
   toast: (msg: string, kind?: "success" | "error" | "info") => void;
 }) {
-  const [frozen, setFrozen] = useState<boolean>(data.frozen);
-  const balanced = data.status === "balanced";
+  const [disbursementsFrozen, setDisbursementsFrozen] = useState<boolean>(data.frozen);
+  const isBalanced = data.status === "balanced";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {frozen && (
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 20,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 16px",
-            borderRadius: 10,
-            background: "#FDECEA",
-            border: "1px solid var(--danger)",
-            color: "var(--danger)",
-            fontSize: 13.5,
-            fontWeight: 700,
-          }}
-        >
+    <div className="flex flex-col gap-4.5">
+      {disbursementsFrozen && (
+        <div className="sticky top-0 z-20 flex items-center gap-2.5 rounded-md bg-[#FDECEA] px-4 py-3 text-[13.5px] font-bold text-danger border border-danger">
           <Icon.lock size={16} />
           Disbursements are frozen pending reconciliation.
         </div>
@@ -98,43 +83,32 @@ function Console({
 
       {/* Status banner */}
       <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 14,
-          padding: "20px 22px",
-          borderRadius: 12,
-          background: balanced ? "var(--m-disbursed-tint)" : "#FDECEA",
-          border: `1px solid ${balanced ? "var(--success)" : "var(--danger)"}`,
-        }}
+        className={cx(
+          "flex items-start gap-3.5 rounded-lg px-5.5 py-5 border",
+          isBalanced
+            ? "bg-m-disbursed-tint border-success"
+            : "bg-[#FDECEA] border-danger",
+        )}
       >
         <span
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: "grid",
-            placeItems: "center",
-            background: "#fff",
-            color: balanced ? "var(--success)" : "var(--danger)",
-            flex: "none",
-          }}
+          className={cx(
+            "grid h-10 w-10 flex-none place-items-center rounded-md bg-surface",
+            isBalanced ? "text-success" : "text-danger",
+          )}
         >
-          {balanced ? <Icon.shieldCheck size={22} /> : <Icon.alert size={22} />}
+          {isBalanced ? <Icon.shieldCheck size={22} /> : <Icon.alert size={22} />}
         </span>
         <div>
           <div
-            style={{
-              fontSize: 17,
-              fontWeight: 800,
-              letterSpacing: "-.01em",
-              color: balanced ? "var(--success)" : "var(--danger)",
-            }}
+            className={cx(
+              "text-[17px] font-extrabold tracking-[-.01em]",
+              isBalanced ? "text-success" : "text-danger",
+            )}
           >
-            {balanced ? "Balanced" : "Drift detected"}
+            {isBalanced ? "Balanced" : "Drift detected"}
           </div>
-          <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 3 }}>
-            {balanced
+          <div className="mt-0.75 text-[13px] text-muted">
+            {isBalanced
               ? `All three sources agree. Last checked ${shortDateTime(data.checkedAt)}.`
               : "Sources disagree — disbursements are frozen until resolved."}
           </div>
@@ -142,7 +116,7 @@ function Console({
       </div>
 
       {/* Summary stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+      <div className="grid grid-cols-3 gap-3.5">
         <Stat label="Total escrow-in" value={fmtNGN(data.escrowIn)} icon="trend" tone="#1570EF" />
         <Stat label="Disbursed" value={fmtNGN(data.disbursed)} icon="check" tone="#198754" />
         <Stat
@@ -160,38 +134,25 @@ function Console({
         sub="Internal ledger · escrow account · payment provider"
       >
         <div>
-          {data.lines.map((line, i) => (
+          {data.lines.map((line, index) => (
             <div
               key={line.label}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                padding: "13px 2px",
-                borderTop: i === 0 ? "none" : "1px solid var(--line)",
-              }}
+              className={cx(
+                "flex items-center justify-between gap-4 px-0.5 py-3.25",
+                index !== 0 && "border-t border-line",
+              )}
             >
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", flex: 1 }}>
+              <span className="flex-1 text-[13.5px] font-semibold text-ink">
                 {line.label}
               </span>
-              <span
-                className="ngn"
-                style={{ fontSize: 14.5, fontWeight: 700, color: "var(--ink)", textAlign: "right" }}
-              >
+              <span className="ngn text-right text-[14.5px] font-bold text-ink">
                 {fmtNGN(line.amount)}
               </span>
               <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  width: 96,
-                  justifyContent: "flex-end",
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  color: line.ok ? "var(--success)" : "var(--danger)",
-                }}
+                className={cx(
+                  "inline-flex w-24 items-center justify-end gap-1.5 text-[12.5px] font-bold",
+                  line.ok ? "text-success" : "text-danger",
+                )}
               >
                 {line.ok ? <Icon.check size={15} /> : <Icon.alert size={15} />}
                 {line.ok ? "Matches" : "Drift"}
@@ -203,37 +164,28 @@ function Console({
 
       {/* Freeze control */}
       {readOnly ? (
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: "var(--muted)",
-          }}
-        >
+        <div className="inline-flex items-center gap-1.75 text-[12.5px] font-semibold text-muted">
           <Icon.eye size={14} />
           Read-only — viewing only
         </div>
       ) : (
         <Card title="Disbursement freeze">
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+          <div className="flex flex-col gap-3.5">
+            <p className="m-0 text-[13px] leading-relaxed text-muted">
               Freeze all disbursements while a discrepancy is investigated. A banner
               appears across the console while frozen.
             </p>
             <div>
               <Button
-                variant={frozen ? "secondary" : "outlineDanger"}
+                variant={disbursementsFrozen ? "secondary" : "outlineDanger"}
                 leftIcon={<Icon.lock size={16} />}
                 onClick={() => {
-                  const next = !frozen;
-                  setFrozen(next);
-                  toast(next ? "Disbursements frozen" : "Freeze lifted");
+                  const nextFrozen = !disbursementsFrozen;
+                  setDisbursementsFrozen(nextFrozen);
+                  toast(nextFrozen ? "Disbursements frozen" : "Freeze lifted");
                 }}
               >
-                {frozen ? "Lift freeze" : "Freeze disbursements"}
+                {disbursementsFrozen ? "Lift freeze" : "Freeze disbursements"}
               </Button>
             </div>
           </div>

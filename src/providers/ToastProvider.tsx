@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
+import { cx } from "@/lib/cx";
 
 // ============================================================
 // Toast — transient top-right feedback for admin actions.
@@ -19,10 +20,10 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-const STYLE: Record<ToastKind, { bg: string; ic: string }> = {
-  success: { bg: "var(--brand)", ic: "checkCircle" },
-  error: { bg: "var(--danger)", ic: "alert" },
-  info: { bg: "var(--ink)", ic: "info" },
+const TOAST_STYLE: Record<ToastKind, { className: string; icon: string }> = {
+  success: { className: "bg-brand", icon: "checkCircle" },
+  error: { className: "bg-danger", icon: "alert" },
+  info: { className: "bg-ink", icon: "info" },
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -35,20 +36,22 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     timer.current = setTimeout(() => setToast(null), 2600);
   }, []);
 
-  const k = toast ? STYLE[toast.kind] : null;
-  const IcC = k ? Icon[k.ic] : null;
+  const style = toast ? TOAST_STYLE[toast.kind] : null;
+  const Glyph = style ? Icon[style.icon] : null;
 
   return (
     <ToastContext.Provider value={show}>
       {children}
-      {toast && k && IcC && (
-        <div style={{ position: "fixed", top: 72, right: 24, zIndex: 100, animation: "ed-fade-up .25s" }}>
-          <div style={{
-            background: k.bg, color: "#fff", borderRadius: 10, padding: "12px 16px",
-            display: "flex", alignItems: "center", gap: 10, boxShadow: "var(--sh-pop)", maxWidth: 360,
-          }}>
-            <IcC size={19} />
-            <span style={{ fontSize: 13.5, fontWeight: 600 }}>{toast.msg}</span>
+      {toast && style && Glyph && (
+        <div className="fixed top-18 right-6 z-100 animate-[ed-fade-up_.25s]">
+          <div
+            className={cx(
+              "flex max-w-90 items-center gap-2.5 rounded-md px-4 py-3 text-white shadow-pop",
+              style.className,
+            )}
+          >
+            <Glyph size={19} />
+            <span className="text-[13.5px] font-semibold">{toast.msg}</span>
           </div>
         </div>
       )}

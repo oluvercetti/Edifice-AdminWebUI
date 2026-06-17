@@ -1,5 +1,5 @@
 "use client";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   Card,
   Stat,
@@ -24,7 +24,7 @@ import type { AdminRole } from "@/stores/admin-store";
 
 // ============================================================
 // PRD A1 — role-aware dashboard. The widget composition is keyed on the active
-// "view as" role lens; the same reusable pieces (statRow, FUM, live activity,
+// "view as" role lens; the same reusable pieces (StatRow, FumCard, live activity,
 // catalogue) are arranged differently per role.
 // ============================================================
 
@@ -37,22 +37,22 @@ type StatKey =
   | "investors";
 
 function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
 
 // ---------- Loading skeleton ----------
 function DashboardSkeleton() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+    <div className="flex flex-col gap-4.5">
+      <div className="grid grid-cols-4 gap-3.5">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} height={104} radius={12} />
         ))}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 18 }}>
+      <div className="grid grid-cols-[1.4fr_1fr] gap-4.5">
         <Skeleton height={320} radius={12} />
         <Skeleton height={320} radius={12} />
       </div>
@@ -61,13 +61,13 @@ function DashboardSkeleton() {
 }
 
 // ---------- Reusable pieces ----------
-function statRow(keys: StatKey[], d: DashboardData): ReactNode {
+function StatRow({ keys, data }: { keys: StatKey[]; data: DashboardData }) {
   const cells: Record<StatKey, ReactNode> = {
     volume: (
       <Stat
         label="Today's volume"
-        value={fmtNGNCompact(d.todayVolume)}
-        sub={`${d.todayCount} transactions`}
+        value={fmtNGNCompact(data.todayVolume)}
+        sub={`${data.todayCount} transactions`}
         icon="pulse"
         tone="#1570EF"
         trend
@@ -76,8 +76,8 @@ function statRow(keys: StatKey[], d: DashboardData): ReactNode {
     flags: (
       <Stat
         label="Open flags"
-        value={d.openFlags}
-        sub={`${d.flagsHigh} high severity`}
+        value={data.openFlags}
+        sub={`${data.flagsHigh} high severity`}
         icon="flag"
         tone="#D92D20"
       />
@@ -85,7 +85,7 @@ function statRow(keys: StatKey[], d: DashboardData): ReactNode {
     approvals: (
       <Stat
         label="Pending approvals"
-        value={d.pendingApprovals}
+        value={data.pendingApprovals}
         sub="Disbursements awaiting a checker"
         icon="check"
         tone="#7A5AF8"
@@ -94,18 +94,18 @@ function statRow(keys: StatKey[], d: DashboardData): ReactNode {
     recon: (
       <Stat
         label="Reconciliation"
-        value={d.reconStatus === "balanced" ? "Balanced" : "Drift"}
+        value={data.reconStatus === "balanced" ? "Balanced" : "Drift"}
         sub="Ledger = escrow = provider"
         icon="shieldCheck"
-        tone={d.reconStatus === "balanced" ? "#198754" : "#D92D20"}
-        money={d.reconStatus === "balanced" ? "#198754" : "#D92D20"}
+        tone={data.reconStatus === "balanced" ? "#198754" : "#D92D20"}
+        money={data.reconStatus === "balanced" ? "#198754" : "#D92D20"}
       />
     ),
     published: (
       <Stat
         label="Published projects"
-        value={d.publishedProjects}
-        sub={`${d.draftProjects} in draft`}
+        value={data.publishedProjects}
+        sub={`${data.draftProjects} in draft`}
         icon="building"
         tone="#146C43"
       />
@@ -113,7 +113,7 @@ function statRow(keys: StatKey[], d: DashboardData): ReactNode {
     investors: (
       <Stat
         label="Active investors"
-        value={d.activeInvestors}
+        value={data.activeInvestors}
         sub="on the platform"
         icon="user"
         tone="#0F5132"
@@ -122,44 +122,32 @@ function statRow(keys: StatKey[], d: DashboardData): ReactNode {
   };
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${keys.length}, 1fr)`,
-        gap: 14,
-      }}
+      className="grid gap-3.5"
+      style={{ gridTemplateColumns: `repeat(${keys.length}, 1fr)` }}
     >
-      {keys.map((k) => (
-        <div key={k}>{cells[k]}</div>
+      {keys.map((key) => (
+        <div key={key}>{cells[key]}</div>
       ))}
     </div>
   );
 }
 
-function FumCard({ d }: { d: DashboardData }) {
-  const total = d.escrowed + d.disbursed;
-  const escrowPct = total > 0 ? (d.escrowed / total) * 100 : 0;
-  const disbursePct = total > 0 ? (d.disbursed / total) * 100 : 0;
+function FumCard({ data }: { data: DashboardData }) {
+  const total = data.escrowed + data.disbursed;
+  const escrowPct = total > 0 ? (data.escrowed / total) * 100 : 0;
+  const disbursePct = total > 0 ? (data.disbursed / total) * 100 : 0;
   return (
     <Card title="Funds under management" sub="Across all live projects">
-      <div className="ngn" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.02em", color: "var(--ink)" }}>
-        {fmtNGNCompact(d.fum)}
+      <div className="ngn text-[30px] font-extrabold tracking-[-.02em] text-ink">
+        {fmtNGNCompact(data.fum)}
       </div>
-      <div
-        style={{
-          display: "flex",
-          height: 12,
-          borderRadius: 99,
-          background: "#EEF1EF",
-          overflow: "hidden",
-          marginTop: 16,
-        }}
-      >
-        <div style={{ width: `${escrowPct}%`, background: "var(--m-escrowed)" }} />
-        <div style={{ width: `${disbursePct}%`, background: "var(--m-disbursed)" }} />
+      <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-[#EEF1EF]">
+        <div className="bg-m-escrowed" style={{ width: `${escrowPct}%` }} />
+        <div className="bg-m-disbursed" style={{ width: `${disbursePct}%` }} />
       </div>
-      <div style={{ display: "flex", gap: 24, marginTop: 14 }}>
-        <LegendItem color="var(--m-escrowed)" label="In escrow" value={fmtNGN(d.escrowed)} />
-        <LegendItem color="var(--m-disbursed)" label="Disbursed" value={fmtNGN(d.disbursed)} />
+      <div className="mt-3.5 flex gap-6">
+        <LegendItem color="var(--m-escrowed)" label="In escrow" value={fmtNGN(data.escrowed)} />
+        <LegendItem color="var(--m-disbursed)" label="Disbursed" value={fmtNGN(data.disbursed)} />
       </div>
     </Card>
   );
@@ -167,27 +155,22 @@ function FumCard({ d }: { d: DashboardData }) {
 
 function LegendItem({ color, label, value }: { color: string; label: string; value: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ width: 9, height: 9, borderRadius: 99, background: color, flex: "none" }} />
-      <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>{label}</span>
-      <span className="ngn" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{value}</span>
+    <div className="flex items-center gap-2">
+      <span className="h-2.25 w-2.25 flex-none rounded-full" style={{ background: color }} />
+      <span className="text-[12.5px] font-semibold text-muted">{label}</span>
+      <span className="ngn text-[13px] font-bold text-ink">{value}</span>
     </div>
   );
 }
 
 function LiveIndicator() {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <span className="inline-flex items-center gap-1.5">
       <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 99,
-          background: "#3ddc84",
-          animation: "ed-pulse 1.6s infinite",
-        }}
+        className="h-1.5 w-1.5 rounded-full bg-[#3ddc84]"
+        style={{ animation: "ed-pulse 1.6s infinite" }}
       />
-      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".06em", color: "#198754" }}>
+      <span className="text-[11px] font-extrabold tracking-[.06em] text-success">
         LIVE
       </span>
     </span>
@@ -199,9 +182,9 @@ const ACTIVITY_COLUMNS: Column<Txn>[] = [
     key: "time",
     label: "Time",
     w: 80,
-    render: (r) => (
-      <span className="ngn" style={{ color: "var(--muted)", fontVariantNumeric: "tabular-nums" }}>
-        {clockTime(r.occurredAt)}
+    render: (row) => (
+      <span className="ngn text-muted [font-variant-numeric:tabular-nums]">
+        {clockTime(row.occurredAt)}
       </span>
     ),
   },
@@ -209,34 +192,34 @@ const ACTIVITY_COLUMNS: Column<Txn>[] = [
     key: "type",
     label: "Type",
     w: 120,
-    render: (r) => <TypeBadge map={TXN_TYPES} value={r.type} />,
+    render: (row) => <TypeBadge map={TXN_TYPES} value={row.type} />,
   },
   {
     key: "amount",
     label: "Amount",
     w: 120,
     align: "right",
-    render: (r) => (
-      <span className="ngn" style={{ fontWeight: 700 }}>
-        {fmtNGN(r.amount)}
+    render: (row) => (
+      <span className="ngn font-bold">
+        {fmtNGN(row.amount)}
       </span>
     ),
   },
   {
     key: "party",
     label: "Counterparty",
-    render: (r) => r.party ?? "—",
+    render: (row) => row.party ?? "—",
   },
 ];
 
-function LiveActivityCard({ d }: { d: DashboardData }) {
+function LiveActivityCard({ data }: { data: DashboardData }) {
   return (
     <Card
       title="Live activity"
       sub="Most recent money movements"
       pad={0}
       action={
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="flex items-center gap-3">
           <LiveIndicator />
           <Button variant="ghost" size="sm" rightIcon={<Icon.chevR size={15} />} href="/monitoring">
             View all
@@ -244,12 +227,12 @@ function LiveActivityCard({ d }: { d: DashboardData }) {
         </div>
       }
     >
-      <Table columns={ACTIVITY_COLUMNS} rows={d.recentActivity} dense />
+      <Table columns={ACTIVITY_COLUMNS} rows={data.recentActivity} dense />
     </Card>
   );
 }
 
-function CatalogueCard({ d }: { d: DashboardData }) {
+function CatalogueCard({ data }: { data: DashboardData }) {
   return (
     <Card
       title="Catalogue status"
@@ -259,9 +242,9 @@ function CatalogueCard({ d }: { d: DashboardData }) {
         </Button>
       }
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <MiniBox label="Published" value={d.publishedProjects} color="var(--success)" />
-        <MiniBox label="Draft" value={d.draftProjects} color="var(--muted)" />
+      <div className="grid grid-cols-2 gap-3">
+        <MiniBox label="Published" value={data.publishedProjects} color="var(--success)" />
+        <MiniBox label="Draft" value={data.draftProjects} color="var(--muted)" />
       </div>
     </Card>
   );
@@ -269,31 +252,24 @@ function CatalogueCard({ d }: { d: DashboardData }) {
 
 function MiniBox({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div
-      style={{
-        border: "1px solid var(--line)",
-        borderRadius: 10,
-        padding: "14px 16px",
-        background: "#fff",
-      }}
-    >
-      <div className="ngn" style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.02em", color }}>
+    <div className="rounded-md border border-line bg-surface px-4 py-3.5">
+      <div className="ngn text-2xl font-extrabold tracking-[-.02em]" style={{ color }}>
         {value}
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600, marginTop: 4 }}>
+      <div className="mt-1 text-[12.5px] font-semibold text-muted">
         {label}
       </div>
     </div>
   );
 }
 
-function PendingApprovalsCard({ d }: { d: DashboardData }) {
+function PendingApprovalsCard({ data }: { data: DashboardData }) {
   return (
     <Card title="Pending approvals" sub="Disbursements awaiting a checker">
-      <div className="ngn" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-.02em", color: "var(--ink)" }}>
-        {d.pendingApprovals}
+      <div className="ngn text-4xl font-extrabold tracking-[-.02em] text-ink">
+        {data.pendingApprovals}
       </div>
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4">
         <Button variant="secondary" size="sm" full rightIcon={<Icon.chevR size={15} />} href="/disbursements">
           Review queue
         </Button>
@@ -305,7 +281,7 @@ function PendingApprovalsCard({ d }: { d: DashboardData }) {
 function OpsCard() {
   return (
     <Card title="Operations">
-      <p style={{ margin: 0, fontSize: 13.5, color: "var(--muted)", lineHeight: 1.5 }}>
+      <p className="m-0 text-[13.5px] leading-normal text-muted">
         Investor accounts &amp; complaints — full tools coming in the next phase.
       </p>
     </Card>
@@ -316,27 +292,16 @@ function AuditorCard() {
   const toast = useToast();
   return (
     <Card title="Read-only view">
-      <div style={{ display: "flex", gap: 12 }}>
-        <span
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 10,
-            background: "#EEF0F2",
-            color: "var(--muted)",
-            display: "grid",
-            placeItems: "center",
-            flex: "none",
-          }}
-        >
+      <div className="flex gap-3">
+        <span className="grid h-9.5 w-9.5 flex-none place-items-center rounded-md bg-[#EEF0F2] text-muted">
           <Icon.eye size={18} />
         </span>
-        <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5 }}>
+        <p className="m-0 text-[13.5px] leading-normal text-ink">
           You are viewing as Auditor. All data is visible and exportable; mutating controls are
           hidden.
         </p>
       </div>
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4">
         <Button
           variant="secondary"
           size="sm"
@@ -351,23 +316,14 @@ function AuditorCard() {
 }
 
 // ---------- Per-role layout ----------
-const gridStyle = (cols: string): CSSProperties => ({
-  display: "grid",
-  gridTemplateColumns: cols,
-  gap: 18,
-  alignItems: "start",
-});
-
-const colStyle: CSSProperties = { display: "flex", flexDirection: "column", gap: 18 };
-
-function DashboardBody({ d, role }: { d: DashboardData; role: AdminRole }) {
+function DashboardBody({ data, role }: { data: DashboardData; role: AdminRole }) {
   if (role === "CATALOGUE") {
     return (
       <>
-        {statRow(["published", "volume", "investors"], d)}
-        <div style={gridStyle("1fr 1.3fr")}>
-          <CatalogueCard d={d} />
-          <LiveActivityCard d={d} />
+        <StatRow keys={["published", "volume", "investors"]} data={data} />
+        <div className="grid grid-cols-[1fr_1.3fr] items-start gap-4.5">
+          <CatalogueCard data={data} />
+          <LiveActivityCard data={data} />
         </div>
       </>
     );
@@ -376,9 +332,9 @@ function DashboardBody({ d, role }: { d: DashboardData; role: AdminRole }) {
   if (role === "OPS") {
     return (
       <>
-        {statRow(["investors", "flags", "volume"], d)}
-        <div style={gridStyle("1.4fr 1fr")}>
-          <LiveActivityCard d={d} />
+        <StatRow keys={["investors", "flags", "volume"]} data={data} />
+        <div className="grid grid-cols-[1.4fr_1fr] items-start gap-4.5">
+          <LiveActivityCard data={data} />
           <OpsCard />
         </div>
       </>
@@ -388,9 +344,9 @@ function DashboardBody({ d, role }: { d: DashboardData; role: AdminRole }) {
   if (role === "AUDITOR") {
     return (
       <>
-        {statRow(["volume", "recon", "published"], d)}
-        <div style={gridStyle("1.4fr 1fr")}>
-          <LiveActivityCard d={d} />
+        <StatRow keys={["volume", "recon", "published"]} data={data} />
+        <div className="grid grid-cols-[1.4fr_1fr] items-start gap-4.5">
+          <LiveActivityCard data={data} />
           <AuditorCard />
         </div>
       </>
@@ -400,15 +356,15 @@ function DashboardBody({ d, role }: { d: DashboardData; role: AdminRole }) {
   // FINANCE or SUPER (fallback)
   return (
     <>
-      {statRow(["volume", "flags", "approvals", "recon"], d)}
-      <div style={gridStyle("1.4fr 1fr")}>
-        <div style={colStyle}>
-          <FumCard d={d} />
-          <LiveActivityCard d={d} />
+      <StatRow keys={["volume", "flags", "approvals", "recon"]} data={data} />
+      <div className="grid grid-cols-[1.4fr_1fr] items-start gap-4.5">
+        <div className="flex flex-col gap-4.5">
+          <FumCard data={data} />
+          <LiveActivityCard data={data} />
         </div>
-        <div style={colStyle}>
-          <PendingApprovalsCard d={d} />
-          {role === "SUPER" && <CatalogueCard d={d} />}
+        <div className="flex flex-col gap-4.5">
+          <PendingApprovalsCard data={data} />
+          {role === "SUPER" && <CatalogueCard data={data} />}
         </div>
       </div>
     </>
@@ -437,21 +393,21 @@ export function DashboardScreen() {
   const firstName = (admin?.name ?? "").trim().split(" ")[0] || "there";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+    <div className="flex flex-col gap-4.5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 700, letterSpacing: "-.02em" }}>
+          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">
             {greeting()}, {firstName}
           </h1>
-          <p style={{ margin: "5px 0 0", fontSize: 13.5, color: "var(--muted)" }}>
+          <p className="mt-1.25 mb-0 text-[13.5px] text-muted">
             Here&apos;s what needs your attention as{" "}
-            <span style={{ color: roleMeta.color, fontWeight: 700 }}>{roleMeta.label}</span>.
+            <span className="font-bold" style={{ color: roleMeta.color }}>{roleMeta.label}</span>.
           </p>
         </div>
         <RoleBadge role={role} />
       </div>
 
-      <DashboardBody d={data} role={role} />
+      <DashboardBody data={data} role={role} />
     </div>
   );
 }

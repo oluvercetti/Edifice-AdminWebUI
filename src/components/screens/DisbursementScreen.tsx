@@ -5,6 +5,7 @@ import { Icon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, ErrorState, Placeholder, Skeleton } from "@/components/ui/feedback";
 import { Pill } from "@/components/ui/Pill";
+import { cx } from "@/lib/cx";
 import { ApiError } from "@/lib/api/http";
 import { useApproveDisbursement, useDisbursements, useRejectDisbursement } from "@/lib/api/queries";
 import type { Disbursement } from "@/lib/api/types";
@@ -15,7 +16,7 @@ import { shortDateTime } from "@/lib/txn";
 import { useToast } from "@/providers/ToastProvider";
 import { useAdminStore } from "@/stores/admin-store";
 
-const FILTERS = ["All", "Awaiting approval", "Executed", "Rejected"] as const;
+const STATUS_FILTERS = ["All", "Awaiting approval", "Executed", "Rejected"] as const;
 
 export function DisbursementScreen() {
   const toast = useToast();
@@ -26,36 +27,39 @@ export function DisbursementScreen() {
     isEmpty: (d) => d.length === 0,
   });
 
-  const approve = useApproveDisbursement();
-  const reject = useRejectDisbursement();
+  const approveMutation = useApproveDisbursement();
+  const rejectMutation = useRejectDisbursement();
 
-  const [filter, setFilter] = useState<string>("All");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [selectedDisbursementId, setSelectedDisbursementId] = useState<string | null>(null);
+  const [confirmReleaseOpen, setConfirmReleaseOpen] = useState(false);
 
-  const rows = useMemo(() => data ?? [], [data]);
+  const disbursements = useMemo(() => data ?? [], [data]);
 
   // Re-derive the live row from the latest data so the drawer reflects updates.
-  const selected = useMemo(
-    () => rows.find((d) => d.id === selectedId) ?? null,
-    [rows, selectedId],
+  const selectedDisbursement = useMemo(
+    () => disbursements.find((d) => d.id === selectedDisbursementId) ?? null,
+    [disbursements, selectedDisbursementId],
   );
 
-  const filtered = useMemo(
-    () => (filter === "All" ? rows : rows.filter((d) => d.status === filter)),
-    [rows, filter],
+  const visibleDisbursements = useMemo(
+    () =>
+      statusFilter === "All"
+        ? disbursements
+        : disbursements.filter((d) => d.status === statusFilter),
+    [disbursements, statusFilter],
   );
 
   const closeDrawer = () => {
-    setSelectedId(null);
-    setConfirmOpen(false);
+    setSelectedDisbursementId(null);
+    setConfirmReleaseOpen(false);
   };
-  const closeModal = () => setConfirmOpen(false);
+  const closeConfirm = () => setConfirmReleaseOpen(false);
 
-  const onApproveError = (e: unknown) =>
-    toast(e instanceof ApiError ? e.message : "Failed to release disbursement.", "error");
-  const onRejectError = (e: unknown) =>
-    toast(e instanceof ApiError ? e.message : "Failed to reject disbursement.", "error");
+  const handleApproveError = (error: unknown) =>
+    toast(error instanceof ApiError ? error.message : "Failed to release disbursement.", "error");
+  const handleRejectError = (error: unknown) =>
+    toast(error instanceof ApiError ? error.message : "Failed to reject disbursement.", "error");
 
   const columns: Column<Disbursement>[] = [
     {
@@ -63,8 +67,8 @@ export function DisbursementScreen() {
       label: "Project",
       render: (d) => (
         <div>
-          <div style={{ fontWeight: 600 }}>{d.projectTitle ?? "—"}</div>
-          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{d.milestoneTitle ?? "—"}</div>
+          <div className="font-semibold">{d.projectTitle ?? "—"}</div>
+          <div className="mt-0.5 text-xs text-muted">{d.milestoneTitle ?? "—"}</div>
         </div>
       ),
     },
@@ -74,7 +78,7 @@ export function DisbursementScreen() {
       label: "Amount",
       w: 140,
       align: "right",
-      render: (d) => <span style={{ fontWeight: 700 }}>{fmtNGN(d.amount)}</span>,
+      render: (d) => <span className="font-bold">{fmtNGN(d.amount)}</span>,
     },
     { key: "proposedBy", label: "Proposed by", w: 150, render: (d) => d.proposedBy ?? "—" },
     { key: "proposedAt", label: "Proposed", w: 140, render: (d) => shortDateTime(d.proposedAt) },
@@ -84,7 +88,7 @@ export function DisbursementScreen() {
       label: "Escrow",
       w: 140,
       align: "right",
-      render: (d) => <span style={{ color: "var(--muted)" }}>{fmtNGN(d.escrowBalance)}</span>,
+      render: (d) => <span className="text-muted">{fmtNGN(d.escrowBalance)}</span>,
     },
   ];
 
@@ -96,7 +100,7 @@ export function DisbursementScreen() {
       />
 
       {state === "loading" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="flex flex-col gap-4">
           <Skeleton height={120} />
           <Skeleton height={120} />
           <Skeleton height={120} />
@@ -117,16 +121,16 @@ export function DisbursementScreen() {
 
       {state === "ready" && (
         <>
-          <div style={{ marginBottom: 16 }}>
-            <Segmented size="sm" options={[...FILTERS]} value={filter} onChange={setFilter} />
+          <div className="mb-4">
+            <Segmented size="sm" options={[...STATUS_FILTERS]} value={statusFilter} onChange={setStatusFilter} />
           </div>
           <Card pad={0}>
             <Table
               columns={columns}
-              rows={filtered}
+              rows={visibleDisbursements}
               getId={(d) => d.id}
-              activeId={selectedId}
-              onRowClick={(d) => setSelectedId(d.id)}
+              activeId={selectedDisbursementId}
+              onRowClick={(d) => setSelectedDisbursementId(d.id)}
               empty={
                 <EmptyState
                   icon="inbox"
@@ -140,33 +144,33 @@ export function DisbursementScreen() {
       )}
 
       <ReviewDrawer
-        disbursement={selected}
+        disbursement={selectedDisbursement}
         admin={admin}
         readOnly={readOnly}
         onClose={closeDrawer}
-        confirmOpen={confirmOpen}
-        openConfirm={() => setConfirmOpen(true)}
-        closeModal={closeModal}
+        confirmReleaseOpen={confirmReleaseOpen}
+        openConfirmRelease={() => setConfirmReleaseOpen(true)}
+        closeConfirmRelease={closeConfirm}
         approve={{
-          isPending: approve.isPending,
+          isPending: approveMutation.isPending,
           run: (id) =>
-            approve.mutate(id, {
+            approveMutation.mutate(id, {
               onSuccess: () => {
                 toast("Disbursement released");
-                closeModal();
+                closeConfirm();
                 closeDrawer();
               },
-              onError: onApproveError,
+              onError: handleApproveError,
             }),
         }}
         reject={{
           run: (id) =>
-            reject.mutate(id, {
+            rejectMutation.mutate(id, {
               onSuccess: () => {
                 toast("Disbursement rejected");
                 closeDrawer();
               },
-              onError: onRejectError,
+              onError: handleRejectError,
             }),
         }}
       />
@@ -183,9 +187,9 @@ function ReviewDrawer({
   admin,
   readOnly,
   onClose,
-  confirmOpen,
-  openConfirm,
-  closeModal,
+  confirmReleaseOpen,
+  openConfirmRelease,
+  closeConfirmRelease,
   approve,
   reject,
 }: {
@@ -193,47 +197,36 @@ function ReviewDrawer({
   admin: AdminLike | null;
   readOnly: boolean;
   onClose: () => void;
-  confirmOpen: boolean;
-  openConfirm: () => void;
-  closeModal: () => void;
+  confirmReleaseOpen: boolean;
+  openConfirmRelease: () => void;
+  closeConfirmRelease: () => void;
   approve: { isPending: boolean; run: (id: string) => void };
   reject: { run: (id: string) => void };
 }) {
-  const open = disbursement != null;
-  const isPending = disbursement?.status === "Awaiting approval";
-  const isOwn = !!admin && disbursement?.proposedById === admin.id;
-  const covered = disbursement != null && disbursement.escrowBalance >= disbursement.amount;
+  const isOpen = disbursement != null;
+  const isAwaitingApproval = disbursement?.status === "Awaiting approval";
+  const isOwnProposal = !!admin && disbursement?.proposedById === admin.id;
+  const escrowCoversAmount =
+    disbursement != null && disbursement.escrowBalance >= disbursement.amount;
 
-  const showActions = !readOnly && isPending;
+  const showActions = !readOnly && isAwaitingApproval;
 
   const footer = disbursement && (
     showActions ? (
       <>
-        <Button
-          variant="outlineDanger"
-          onClick={() => reject.run(disbursement.id)}
-        >
+        <Button variant="outlineDanger" onClick={() => reject.run(disbursement.id)}>
           Reject
         </Button>
         <Button
           variant="primary"
-          disabled={isOwn}
-          onClick={isOwn ? undefined : openConfirm}
+          disabled={isOwnProposal}
+          onClick={isOwnProposal ? undefined : openConfirmRelease}
         >
           Approve &amp; release
         </Button>
       </>
     ) : (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 12.5,
-          color: "var(--muted)",
-          fontWeight: 600,
-        }}
-      >
+      <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">
         {readOnly ? (
           <>
             <Icon.eye size={14} />
@@ -249,7 +242,7 @@ function ReviewDrawer({
   return (
     <>
       <Drawer
-        open={open}
+        open={isOpen}
         onClose={onClose}
         width={520}
         title="Disbursement review"
@@ -257,23 +250,12 @@ function ReviewDrawer({
         footer={footer}
       >
         {disbursement && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="flex flex-col gap-5">
             {/* Prominent amount box */}
-            <div
-              style={{
-                border: "1px solid var(--line)",
-                borderRadius: 12,
-                padding: 18,
-                background: "var(--canvas)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
+            <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-canvas p-4.5">
               <div>
-                <div style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>Releasing</div>
-                <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.02em", marginTop: 4 }}>
+                <div className="text-[12.5px] font-semibold text-muted">Releasing</div>
+                <div className="mt-1 text-[30px] font-extrabold tracking-[-.02em]">
                   {fmtNGN(disbursement.amount)}
                 </div>
               </div>
@@ -282,15 +264,15 @@ function ReviewDrawer({
 
             {/* Milestone evidence */}
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>Milestone evidence</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="mb-2 text-[12.5px] font-bold">Milestone evidence</div>
+              <div className="grid grid-cols-2 gap-2.5">
                 <Placeholder icon="camera" label="Progress photo" height={120} />
                 <Placeholder icon="camera" label="Progress photo" height={120} />
               </div>
             </div>
 
             {/* Detail rows */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <div className="flex flex-col">
               <DetailRow label="Tranche" value={`${disbursement.tranchePct}%`} />
               <DetailRow label="Project escrow balance" value={fmtNGN(disbursement.escrowBalance)} />
               <DetailRow label="Proposed by" value={disbursement.proposedBy ?? "—"} />
@@ -299,39 +281,22 @@ function ReviewDrawer({
 
             {/* Escrow check */}
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: 13,
-                fontWeight: 600,
-                padding: "10px 12px",
-                borderRadius: 10,
-                color: covered ? "var(--success)" : "var(--danger)",
-                background: covered ? "#E6F3EC" : "#FDECEA",
-              }}
+              className={cx(
+                "flex items-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold",
+                escrowCoversAmount
+                  ? "bg-m-disbursed-tint text-success"
+                  : "bg-[#FDECEA] text-danger",
+              )}
             >
-              {covered ? <Icon.checkCircle size={15} /> : <Icon.alert size={15} />}
-              {covered
+              {escrowCoversAmount ? <Icon.checkCircle size={15} /> : <Icon.alert size={15} />}
+              {escrowCoversAmount
                 ? "Escrow balance covers this disbursement."
                 : "Insufficient escrow balance."}
             </div>
 
             {/* Maker-checker guardrail note */}
-            {showActions && isOwn && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  color: "var(--danger)",
-                  background: "#FCF3D9",
-                }}
-              >
+            {showActions && isOwnProposal && (
+              <div className="flex items-center gap-2 rounded-md bg-[#FCF3D9] px-3 py-2.5 text-[12.5px] font-semibold text-[#9a7b00]">
                 <Icon.lock size={15} />
                 You cannot approve your own proposal (maker-checker).
               </div>
@@ -340,26 +305,18 @@ function ReviewDrawer({
         )}
       </Drawer>
 
-      <Modal open={confirmOpen} onClose={closeModal}>
+      <Modal open={confirmReleaseOpen} onClose={closeConfirmRelease}>
         {disbursement && (
           <div>
-            <div style={{ padding: "18px 20px 0" }}>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>Release this disbursement?</div>
-              <p style={{ margin: "8px 0 0", fontSize: 13.5, color: "var(--muted)", lineHeight: 1.5 }}>
+            <div className="px-5 pt-4.5">
+              <div className="text-base font-bold">Release this disbursement?</div>
+              <p className="mt-2 text-[13.5px] leading-normal text-muted">
                 This releases {fmtNGN(disbursement.amount)} from escrow to the developer for{" "}
                 {disbursement.projectTitle ?? "—"}. This cannot be undone.
               </p>
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                justifyContent: "flex-end",
-                padding: "18px 20px",
-                marginTop: 6,
-              }}
-            >
-              <Button variant="secondary" onClick={closeModal}>
+            <div className="mt-1.5 flex justify-end gap-2.5 px-5 py-4.5">
+              <Button variant="secondary" onClick={closeConfirmRelease}>
                 Cancel
               </Button>
               <Button
@@ -379,18 +336,9 @@ function ReviewDrawer({
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "10px 0",
-        borderBottom: "1px solid #EEF1EF",
-        fontSize: 13,
-      }}
-    >
-      <span style={{ color: "var(--muted)", fontWeight: 600 }}>{label}</span>
-      <span style={{ color: "var(--ink)", fontWeight: 600 }}>{value}</span>
+    <div className="flex items-center justify-between border-b border-[#EEF1EF] py-2.5 text-[13px]">
+      <span className="font-semibold text-muted">{label}</span>
+      <span className="font-semibold text-ink">{value}</span>
     </div>
   );
 }

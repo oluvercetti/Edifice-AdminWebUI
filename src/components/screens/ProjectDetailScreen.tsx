@@ -1,12 +1,16 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
 import { Pill } from "@/components/ui/Pill";
 import { Progress } from "@/components/ui/Progress";
 import { Skeleton, ErrorState, Placeholder } from "@/components/ui/feedback";
+import { Field, Textarea } from "@/components/ui/Field";
 import { Icon } from "@/components/icons";
 import { Card, Modal } from "@/components/admin/primitives";
+import { cx } from "@/lib/cx";
 import { fmtNGN } from "@/lib/money";
 import {
   useProject,
@@ -20,6 +24,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { ApiError } from "@/lib/api/http";
 import { useAdminStore } from "@/stores/admin-store";
 import { isReadOnly } from "@/lib/roles";
+import { postUpdateSchema, type PostUpdateValues, type PostUpdateInput } from "@/lib/schemas";
 import type { CatalogueDetail, AdminMilestone } from "@/lib/api/types";
 
 const LIFECYCLE = ["Draft", "Ready", "Approved", "Published"] as const;
@@ -33,8 +38,8 @@ function lifecycleIndex(status: string): number {
 
 export function ProjectDetailScreen({ id }: { id: string }) {
   const toast = useToast();
-  const admin = useAdminStore((s) => s.admin);
-  const viewAs = useAdminStore((s) => s.viewAs);
+  const admin = useAdminStore((store) => store.admin);
+  const viewAs = useAdminStore((store) => store.viewAs);
   const readOnly = isReadOnly(viewAs);
   const isSuper = !!admin?.roles.includes("SUPER");
 
@@ -52,7 +57,7 @@ export function ProjectDetailScreen({ id }: { id: string }) {
     return (
       <div>
         <Skeleton height={28} style={{ width: 280, marginBottom: 18 }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}>
+        <div className="grid grid-cols-[1.5fr_1fr] gap-5">
           <Skeleton height={320} />
           <Skeleton height={320} />
         </div>
@@ -67,79 +72,50 @@ export function ProjectDetailScreen({ id }: { id: string }) {
     );
   }
 
-  const p: CatalogueDetail = data;
-  const current = lifecycleIndex(p.status);
-  const splitTotal = p.escrowed + p.disbursed || 1;
+  const project: CatalogueDetail = data;
+  const currentStep = lifecycleIndex(project.status);
+  const splitTotal = project.escrowed + project.disbursed || 1;
 
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 18 }}>
+      <div className="mb-4.5">
         <Link
           href="/catalogue"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 13,
-            color: "var(--muted)",
-            fontWeight: 600,
-            marginBottom: 10,
-          }}
+          className="mb-2.5 inline-flex items-center gap-1 text-[13px] font-semibold text-muted"
         >
           <Icon.chevL size={16} />
           Catalogue
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 700, letterSpacing: "-.02em" }}>
-            {p.title}
-          </h1>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 13,
-              color: "var(--muted)",
-            }}
-          >
+        <div className="flex flex-wrap items-center gap-3.5">
+          <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">{project.title}</h1>
+          <span className="inline-flex items-center gap-1 text-[13px] text-muted">
             <Icon.pin size={15} />
-            {p.location}
+            {project.location}
           </span>
-          <Pill status={p.status} />
+          <Pill status={project.status} />
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.5fr 1fr",
-          gap: 20,
-          alignItems: "start",
-        }}
-      >
+      <div className="grid grid-cols-[1.5fr_1fr] items-start gap-5">
         {/* LEFT */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           {/* Lifecycle */}
           <Card title="Lifecycle">
-            <div style={{ display: "flex", alignItems: "center" }}>
-              {LIFECYCLE.map((step, i) => {
-                const done = i < current;
-                const isCurrent = i === current;
+            <div className="flex items-center">
+              {LIFECYCLE.map((step, index) => {
+                const done = index < currentStep;
+                const isCurrent = index === currentStep;
                 return (
                   <div
                     key={step}
-                    style={{ display: "flex", alignItems: "center", flex: i < 3 ? 1 : "none" }}
+                    className="flex items-center"
+                    style={{ flex: index < 3 ? 1 : "none" }}
                   >
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <div className="flex flex-col items-center gap-1.5">
                       <span
+                        className="grid h-7 w-7 flex-none place-items-center rounded-full"
                         style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 99,
-                          display: "grid",
-                          placeItems: "center",
-                          flex: "none",
                           background: done
                             ? "var(--success)"
                             : isCurrent
@@ -149,26 +125,26 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                           color: done || isCurrent ? "#fff" : "var(--muted)",
                         }}
                       >
-                        {done ? <Icon.check size={15} /> : <span style={{ fontSize: 12, fontWeight: 700 }}>{i + 1}</span>}
+                        {done ? (
+                          <Icon.check size={15} />
+                        ) : (
+                          <span className="text-xs font-bold">{index + 1}</span>
+                        )}
                       </span>
                       <span
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 600,
-                          color: done || isCurrent ? "var(--ink)" : "var(--muted)",
-                        }}
+                        className={cx(
+                          "text-[11.5px] font-semibold",
+                          done || isCurrent ? "text-ink" : "text-muted",
+                        )}
                       >
                         {step}
                       </span>
                     </div>
-                    {i < 3 && (
+                    {index < 3 && (
                       <div
+                        className="-mt-5 mx-1.5 h-0.5 flex-1"
                         style={{
-                          flex: 1,
-                          height: 2,
-                          margin: "0 6px",
-                          marginTop: -20,
-                          background: i < current ? "var(--success)" : "var(--line)",
+                          background: index < currentStep ? "var(--success)" : "var(--line)",
                         }}
                       />
                     )}
@@ -180,50 +156,47 @@ export function ProjectDetailScreen({ id }: { id: string }) {
 
           {/* Live funding */}
           <Card title="Live funding">
-            <div style={{ display: "flex", gap: 28, marginBottom: 14 }}>
+            <div className="mb-3.5 flex gap-7">
               <div>
-                <div style={{ fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>Raised</div>
-                <div className="ngn" style={{ fontSize: 19, fontWeight: 800 }}>{fmtNGN(p.raised)}</div>
+                <div className="text-[11.5px] font-semibold text-muted">Raised</div>
+                <div className="ngn text-[19px] font-extrabold">{fmtNGN(project.raised)}</div>
               </div>
               <div>
-                <div style={{ fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>Target</div>
-                <div className="ngn" style={{ fontSize: 19, fontWeight: 800 }}>{fmtNGN(p.target)}</div>
+                <div className="text-[11.5px] font-semibold text-muted">Target</div>
+                <div className="ngn text-[19px] font-extrabold">{fmtNGN(project.target)}</div>
               </div>
               <div>
-                <div style={{ fontSize: 11.5, color: "var(--muted)", fontWeight: 600 }}>% Funded</div>
-                <div style={{ fontSize: 19, fontWeight: 800 }}>{p.pctFunded}%</div>
+                <div className="text-[11.5px] font-semibold text-muted">% Funded</div>
+                <div className="text-[19px] font-extrabold">{project.pctFunded}%</div>
               </div>
             </div>
-            <Progress value={p.pctFunded} height={8} />
+            <Progress value={project.pctFunded} height={8} />
 
             {/* Escrow vs disbursed split bar */}
-            <div
-              style={{
-                display: "flex",
-                height: 8,
-                borderRadius: 99,
-                overflow: "hidden",
-                marginTop: 16,
-                background: "#E9EDEA",
-              }}
-            >
-              <div style={{ width: `${(p.escrowed / splitTotal) * 100}%`, background: "var(--m-escrowed)" }} />
-              <div style={{ width: `${(p.disbursed / splitTotal) * 100}%`, background: "var(--m-disbursed)" }} />
+            <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-[#E9EDEA]">
+              <div
+                className="bg-m-escrowed"
+                style={{ width: `${(project.escrowed / splitTotal) * 100}%` }}
+              />
+              <div
+                className="bg-m-disbursed"
+                style={{ width: `${(project.disbursed / splitTotal) * 100}%` }}
+              />
             </div>
-            <div style={{ display: "flex", gap: 18, marginTop: 10, fontSize: 12.5 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 9, height: 9, borderRadius: 99, background: "var(--m-escrowed)" }} />
-                <span style={{ color: "var(--muted)" }}>In escrow</span>
-                <strong>{fmtNGN(p.escrowed)}</strong>
+            <div className="mt-2.5 flex gap-4.5 text-[12.5px]">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.25 w-2.25 rounded-full bg-m-escrowed" />
+                <span className="text-muted">In escrow</span>
+                <strong>{fmtNGN(project.escrowed)}</strong>
               </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 9, height: 9, borderRadius: 99, background: "var(--m-disbursed)" }} />
-                <span style={{ color: "var(--muted)" }}>Disbursed</span>
-                <strong>{fmtNGN(p.disbursed)}</strong>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.25 w-2.25 rounded-full bg-m-disbursed" />
+                <span className="text-muted">Disbursed</span>
+                <strong>{fmtNGN(project.disbursed)}</strong>
               </span>
             </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
+            <div className="mt-4 flex flex-wrap gap-2.5">
               <Button variant="ghost" size="sm" leftIcon={<Icon.pulse size={15} />} href="/monitoring">
                 View transactions
               </Button>
@@ -242,19 +215,12 @@ export function ProjectDetailScreen({ id }: { id: string }) {
 
           {/* Use of proceeds */}
           <Card title="Use of proceeds">
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {p.useOfProceeds.map(([label, pct]) => (
+            <div className="flex flex-col gap-3">
+              {project.useOfProceeds.map(([label, pct]) => (
                 <div key={label}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: 12.5,
-                      marginBottom: 5,
-                    }}
-                  >
-                    <span style={{ color: "var(--ink)", fontWeight: 600 }}>{label}</span>
-                    <span style={{ color: "var(--muted)" }}>{pct}%</span>
+                  <div className="mb-1.25 flex justify-between text-[12.5px]">
+                    <span className="font-semibold text-ink">{label}</span>
+                    <span className="text-muted">{pct}%</span>
                   </div>
                   <Progress value={pct} height={6} />
                 </div>
@@ -264,29 +230,18 @@ export function ProjectDetailScreen({ id }: { id: string }) {
         </div>
 
         {/* RIGHT */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           {!readOnly && (
             <Card title="Publish controls">
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="flex flex-col gap-3">
                 {!isSuper && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "10px 12px",
-                      borderRadius: 8,
-                      background: "var(--canvas)",
-                      color: "var(--muted)",
-                      fontSize: 12.5,
-                    }}
-                  >
+                  <div className="flex items-center gap-2 rounded-md bg-canvas px-3 py-2.5 text-[12.5px] text-muted">
                     <Icon.lock size={15} />
                     Publish &amp; approve actions require a Super Admin.
                   </div>
                 )}
 
-                {p.status !== "Published" ? (
+                {project.status !== "Published" ? (
                   <Button
                     variant="primary"
                     full
@@ -313,15 +268,15 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                   leftIcon={<Icon.star size={16} />}
                   busy={feature.isPending}
                   onClick={() =>
-                    feature.mutate(!p.featured, {
+                    feature.mutate(!project.featured, {
                       onSuccess: () =>
-                        toast(p.featured ? "Removed from Discover" : "Featured on Discover"),
-                      onError: (e) =>
-                        toast(e instanceof ApiError ? e.message : "Failed", "error"),
+                        toast(project.featured ? "Removed from Discover" : "Featured on Discover"),
+                      onError: (error) =>
+                        toast(error instanceof ApiError ? error.message : "Failed", "error"),
                     })
                   }
                 >
-                  {p.featured ? "Remove feature" : "Feature on Discover"}
+                  {project.featured ? "Remove feature" : "Feature on Discover"}
                 </Button>
               </div>
             </Card>
@@ -329,9 +284,9 @@ export function ProjectDetailScreen({ id }: { id: string }) {
 
           {/* SPV card */}
           <Card title="Developer / SPV">
-            <div style={{ fontSize: 13.5, fontWeight: 700 }}>{p.spvName}</div>
-            <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 3 }}>
-              {p.rcNumber ? `RC ${p.rcNumber}` : "RC number pending"}
+            <div className="text-[13.5px] font-bold">{project.spvName}</div>
+            <div className="mt-0.75 text-[12.5px] text-muted">
+              {project.rcNumber ? `RC ${project.rcNumber}` : "RC number pending"}
             </div>
           </Card>
         </div>
@@ -339,16 +294,16 @@ export function ProjectDetailScreen({ id }: { id: string }) {
 
       {/* Publish / unpublish confirm modal */}
       <Modal open={confirm !== null} onClose={() => setConfirm(null)}>
-        <div style={{ padding: 22 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>
+        <div className="p-5.5">
+          <h3 className="m-0 text-[17px] font-bold">
             {confirm === "unpublish" ? "Unpublish this project?" : "Publish this project?"}
           </h3>
-          <p style={{ margin: "8px 0 0", fontSize: 13.5, color: "var(--muted)", lineHeight: 1.5 }}>
+          <p className="mt-2 mb-0 text-[13.5px] leading-normal text-muted">
             {confirm === "unpublish"
               ? "This removes the project from Discover. Investors will no longer see it."
               : "This makes the project visible to investors on Discover."}
           </p>
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+          <div className="mt-5 flex justify-end gap-2.5">
             <Button variant="secondary" onClick={() => setConfirm(null)}>
               Cancel
             </Button>
@@ -362,8 +317,8 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                       toast("Project unpublished");
                       setConfirm(null);
                     },
-                    onError: (e) =>
-                      toast(e instanceof ApiError ? e.message : "Failed", "error"),
+                    onError: (error) =>
+                      toast(error instanceof ApiError ? error.message : "Failed", "error"),
                   })
                 }
               >
@@ -379,8 +334,8 @@ export function ProjectDetailScreen({ id }: { id: string }) {
                       toast("Project published");
                       setConfirm(null);
                     },
-                    onError: (e) =>
-                      toast(e instanceof ApiError ? e.message : "Failed", "error"),
+                    onError: (error) =>
+                      toast(error instanceof ApiError ? error.message : "Failed", "error"),
                   })
                 }
               >
@@ -394,10 +349,10 @@ export function ProjectDetailScreen({ id }: { id: string }) {
       <PostUpdateModal
         open={updateOpen}
         onClose={() => setUpdateOpen(false)}
-        milestones={p.milestones}
+        milestones={project.milestones}
         pending={post.isPending}
-        onSubmit={(body) =>
-          post.mutate(body, {
+        onSubmit={(values) =>
+          post.mutate(values, {
             onSuccess: (res) => {
               toast(
                 res.disbursementProposed
@@ -406,7 +361,8 @@ export function ProjectDetailScreen({ id }: { id: string }) {
               );
               setUpdateOpen(false);
             },
-            onError: (e) => toast(e instanceof ApiError ? e.message : "Failed", "error"),
+            onError: (error) =>
+              toast(error instanceof ApiError ? error.message : "Failed", "error"),
           })
         }
       />
@@ -427,146 +383,108 @@ function PostUpdateModal({
   onClose: () => void;
   milestones: AdminMilestone[];
   pending: boolean;
-  onSubmit: (body: {
-    milestoneId: string;
-    completion: number;
-    caption: string;
-    mediaCount: number;
-  }) => void;
+  onSubmit: (values: PostUpdateValues) => void;
 }) {
   const first = milestones[0];
-  const [milestoneId, setMilestoneId] = useState(first?.id ?? "");
-  const [completion, setCompletion] = useState<number>(first?.completion ?? 0);
-  const [caption, setCaption] = useState("");
 
-  const selected = milestones.find((m) => m.id === milestoneId) ?? first;
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<PostUpdateInput, unknown, PostUpdateValues>({
+    resolver: zodResolver(postUpdateSchema),
+    defaultValues: {
+      milestoneId: first?.id ?? "",
+      completion: first?.completion ?? 0,
+      caption: "",
+    },
+  });
 
-  function selectMilestone(m: AdminMilestone) {
-    setMilestoneId(m.id);
-    setCompletion(m.completion ?? 0);
+  const milestoneId = watch("milestoneId");
+  const completion = Number(watch("completion")) || 0;
+  const selected = milestones.find((milestone) => milestone.id === milestoneId) ?? first;
+
+  function selectMilestone(milestone: AdminMilestone) {
+    setValue("milestoneId", milestone.id);
+    setValue("completion", milestone.completion ?? 0);
   }
 
   return (
     <Modal open={open} onClose={onClose} width={520}>
-      <div style={{ padding: 22 }}>
-        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Post progress update</h3>
+      <form onSubmit={handleSubmit(onSubmit)} className="p-5.5">
+        <h3 className="m-0 text-[17px] font-bold">Post progress update</h3>
 
         {/* Milestone selector */}
-        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-          {milestones.map((m, i) => {
-            const on = m.id === milestoneId;
+        <div className="mt-4 flex flex-col gap-2">
+          {milestones.map((milestone, index) => {
+            const selectedRow = milestone.id === milestoneId;
             return (
               <button
-                key={m.id}
-                onClick={() => selectMilestone(m)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 11,
-                  padding: "10px 12px",
-                  borderRadius: 9,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  background: on ? "var(--primary-tint)" : "#fff",
-                  border: `1px solid ${on ? "var(--primary-accent)" : "var(--line)"}`,
-                }}
+                key={milestone.id}
+                type="button"
+                onClick={() => selectMilestone(milestone)}
+                className={cx(
+                  "flex cursor-pointer items-center gap-2.75 rounded-[9px] border px-3 py-2.5 text-left",
+                  selectedRow
+                    ? "border-primary-accent bg-primary-tint"
+                    : "border-line bg-surface",
+                )}
               >
                 <span
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 7,
-                    flex: "none",
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    background: on ? "var(--primary-accent)" : "#EEF1EF",
-                    color: on ? "#fff" : "var(--muted)",
-                  }}
+                  className={cx(
+                    "grid h-6 w-6 flex-none place-items-center rounded-[7px] text-xs font-bold",
+                    selectedRow
+                      ? "bg-primary-accent text-white"
+                      : "bg-[#EEF1EF] text-muted",
+                  )}
                 >
-                  {i + 1}
+                  {index + 1}
                 </span>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{m.title}</span>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>tranche {m.tranchePct}%</span>
+                <span className="flex-1 text-[13px] font-semibold">{milestone.title}</span>
+                <span className="text-xs text-muted">tranche {milestone.tranchePct}%</span>
               </button>
             );
           })}
         </div>
 
         {/* Completion */}
-        <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
-            Completion — {completion}%
-          </div>
+        <div className="mt-4">
+          <div className="mb-2 text-[12.5px] font-semibold">Completion — {completion}%</div>
           <input
             type="range"
             min={0}
             max={100}
-            value={completion}
-            onChange={(e) => setCompletion(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "var(--primary-accent)" }}
+            className="w-full accent-(--primary-accent)"
+            {...register("completion", { valueAsNumber: true })}
           />
         </div>
 
         {/* Caption */}
-        <div style={{ marginTop: 16 }}>
-          <textarea
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="Describe what progressed on site…"
-            rows={3}
-            style={{
-              width: "100%",
-              border: "1px solid var(--line)",
-              borderRadius: 8,
-              padding: "10px 12px",
-              fontSize: 13.5,
-              fontFamily: "var(--font)",
-              outline: "none",
-              resize: "vertical",
-              color: "var(--ink)",
-            }}
-          />
+        <div className="mt-4">
+          <Field label="" error={errors.caption?.message}>
+            <Textarea
+              placeholder="Describe what progressed on site…"
+              rows={3}
+              error={!!errors.caption}
+              {...register("caption")}
+            />
+          </Field>
         </div>
 
         {/* Media */}
-        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <div className="mt-3 flex gap-2.5">
           <Placeholder icon="camera" height={70} style={{ flex: 1 }} />
           <Placeholder icon="camera" height={70} style={{ flex: 1 }} />
-          <div
-            style={{
-              flex: 1,
-              height: 70,
-              border: "1.5px dashed var(--line)",
-              borderRadius: 10,
-              display: "grid",
-              placeItems: "center",
-              fontSize: 12,
-              color: "var(--muted)",
-              fontWeight: 600,
-            }}
-          >
+          <div className="grid h-17.5 flex-1 place-items-center rounded-md border-[1.5px] border-dashed border-line text-xs font-semibold text-muted">
             Add photos
           </div>
         </div>
 
         {/* Disbursement warning */}
         {completion >= 100 && (
-          <div
-            style={{
-              display: "flex",
-              gap: 9,
-              alignItems: "flex-start",
-              marginTop: 14,
-              padding: "11px 13px",
-              borderRadius: 9,
-              background: "#FCF3D9",
-              color: "#7A5A00",
-              fontSize: 12.5,
-              lineHeight: 1.5,
-            }}
-          >
+          <div className="mt-3.5 flex items-start gap-2.25 rounded-[9px] bg-[#FCF3D9] px-3.25 py-2.75 text-[12.5px] leading-normal text-[#7A5A00]">
             <Icon.alert size={16} style={{ flex: "none", marginTop: 1 }} />
             <span>
               Marking complete requests a disbursement of tranche {selected?.tranchePct ?? 0}% for
@@ -577,19 +495,15 @@ function PostUpdateModal({
         )}
 
         {/* Footer */}
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+        <div className="mt-5 flex justify-end gap-2.5">
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            busy={pending}
-            onClick={() => onSubmit({ milestoneId, completion, caption, mediaCount: 0 })}
-          >
+          <Button variant="primary" type="submit" busy={pending}>
             {completion >= 100 ? "Publish & request disbursement" : "Publish update"}
           </Button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }

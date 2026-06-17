@@ -2,32 +2,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
+import { Field, Input, Textarea } from "@/components/ui/Field";
 import { Icon } from "@/components/icons";
-import { Card, Segmented, AInput, ALabel } from "@/components/admin/primitives";
+import { Card, Segmented } from "@/components/admin/primitives";
+import { cx } from "@/lib/cx";
 import { nairaToKobo } from "@/lib/money";
 import { useCreateProject } from "@/lib/api/queries";
 import { useToast } from "@/providers/ToastProvider";
 import { ApiError } from "@/lib/api/http";
+import {
+  projectWizardSchema,
+  type ProjectWizardValues,
+  type ProjectWizardInput,
+  SECURITY_OPTIONS,
+} from "@/lib/schemas";
 import type { CreateProjectInput } from "@/lib/api/client";
 
 const STEPS = ["Basics", "Offer terms", "Milestones", "Media", "Documents", "Review"] as const;
-
-type SecurityType = "EQUITY_SHARES" | "DEBT_NOTE" | "PROFIT_PARTICIPATION";
-
-interface MilestoneRow {
-  title: string;
-  weight: number;
-  tranchePct: number;
-  dateLabel: string;
-}
-
-const DEFAULT_MILESTONES: MilestoneRow[] = [
-  { title: "Foundation & substructure", weight: 25, tranchePct: 25, dateLabel: "" },
-  { title: "Superstructure", weight: 35, tranchePct: 35, dateLabel: "" },
-  { title: "Finishing & fit-out", weight: 25, tranchePct: 25, dateLabel: "" },
-  { title: "Handover", weight: 15, tranchePct: 15, dateLabel: "" },
-];
 
 const DEFAULT_USE_OF_PROCEEDS: [string, number][] = [
   ["Construction", 60],
@@ -36,43 +30,11 @@ const DEFAULT_USE_OF_PROCEEDS: [string, number][] = [
   ["Contingency", 8],
 ];
 
-const textareaStyle: React.CSSProperties = {
-  width: "100%",
-  border: "1px solid var(--line)",
-  borderRadius: 8,
-  padding: "10px 12px",
-  fontSize: 13.5,
-  fontFamily: "var(--font)",
-  outline: "none",
-  resize: "vertical",
-  color: "var(--ink)",
-};
-
-function Field({ label, children, optional }: { label: string; children: React.ReactNode; optional?: boolean }) {
-  return (
-    <div>
-      <ALabel optional={optional}>{label}</ALabel>
-      {children}
-    </div>
-  );
-}
-
 function DashedBox({ label, height = 120 }: { label: string; height?: number }) {
   return (
     <div
-      style={{
-        height,
-        border: "1.5px dashed var(--line)",
-        borderRadius: 10,
-        display: "grid",
-        placeItems: "center",
-        color: "var(--muted)",
-        fontSize: 12.5,
-        fontWeight: 600,
-        gap: 6,
-        textAlign: "center",
-        padding: 12,
-      }}
+      className="grid place-items-center gap-1.5 rounded-md border-[1.5px] border-dashed border-line p-3 text-center text-[12.5px] font-semibold text-muted"
+      style={{ height }}
     >
       {label}
     </div>
@@ -86,68 +48,69 @@ export function ProjectWizard() {
 
   const [step, setStep] = useState(0);
 
-  // Basics
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [category, setCategory] = useState("");
-  const [spvName, setSpvName] = useState("");
-  const [rcNumber, setRcNumber] = useState("");
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<ProjectWizardInput, unknown, ProjectWizardValues>({
+    resolver: zodResolver(projectWizardSchema),
+    mode: "onTouched",
+    defaultValues: {
+      title: "",
+      summary: "",
+      location: "",
+      category: "",
+      spvName: "",
+      rcNumber: "",
+      tenor: "",
+      securityType: "EQUITY_SHARES",
+      milestones: [
+        { title: "Foundation & substructure", weight: 25, tranchePct: 25, dateLabel: "" },
+        { title: "Superstructure", weight: 35, tranchePct: 35, dateLabel: "" },
+        { title: "Finishing & fit-out", weight: 25, tranchePct: 25, dateLabel: "" },
+        { title: "Handover", weight: 15, tranchePct: 15, dateLabel: "" },
+      ],
+    },
+  });
 
-  // Offer terms
-  const [target, setTarget] = useState("");
-  const [totalShares, setTotalShares] = useState("");
-  const [minShares, setMinShares] = useState("");
-  const [securityType, setSecurityType] = useState<SecurityType>("EQUITY_SHARES");
-  const [tenor, setTenor] = useState("");
-  const [projectedReturn, setProjectedReturn] = useState("");
+  const { fields, append, remove } = useFieldArray({ control, name: "milestones" });
 
-  // Milestones
-  const [milestones, setMilestones] = useState<MilestoneRow[]>(DEFAULT_MILESTONES);
-
-  const targetNaira = Number(target) || 0;
-  const weightTotal = milestones.reduce((s, m) => s + (Number(m.weight) || 0), 0);
-  const trancheTotal = milestones.reduce((s, m) => s + (Number(m.tranchePct) || 0), 0);
+  const securityType = watch("securityType");
+  const milestones = watch("milestones");
+  const weightTotal = milestones.reduce((sum, milestone) => sum + Number(milestone.weight || 0), 0);
+  const trancheTotal = milestones.reduce(
+    (sum, milestone) => sum + Number(milestone.tranchePct || 0),
+    0,
+  );
   const weightsOk = weightTotal === 100;
   const tranchesOk = trancheTotal === 100;
+  const totalsOk = weightsOk && tranchesOk;
 
-  const basicsOk = title.trim().length > 0 && location.trim().length > 0;
-  const offerOk = targetNaira > 0 && projectedReturn.trim().length > 0;
-  const canCreate = basicsOk && offerOk && weightsOk && tranchesOk;
-
-  function updateMilestone(i: number, patch: Partial<MilestoneRow>) {
-    setMilestones((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  }
-  function addMilestone() {
-    setMilestones((rows) => [...rows, { title: "", weight: 0, tranchePct: 0, dateLabel: "" }]);
-  }
-  function removeMilestone(i: number) {
-    setMilestones((rows) => rows.filter((_, idx) => idx !== i));
-  }
-
-  function handleCreate() {
+  const onSubmit = handleSubmit((values) => {
     const payload = {
-      title,
-      summary: summary || description,
-      location,
-      category,
-      spvName,
-      rcNumber: rcNumber || undefined,
+      title: values.title,
+      summary: values.summary,
+      location: values.location,
+      category: values.category,
+      spvName: values.spvName,
+      rcNumber: values.rcNumber || undefined,
       useOfProceeds: DEFAULT_USE_OF_PROCEEDS,
       offer: {
-        targetMinor: nairaToKobo(targetNaira),
-        totalShares: Number(totalShares) || 0,
-        minShares: minShares ? Number(minShares) : undefined,
-        securityType,
-        tenor,
-        projectedReturn: String(projectedReturn),
+        targetMinor: nairaToKobo(values.targetNaira),
+        totalShares: values.totalShares,
+        minShares: values.minShares || undefined,
+        securityType: values.securityType,
+        tenor: values.tenor,
+        projectedReturn: String(values.projectedReturn),
       },
-      milestones: milestones.map((r) => ({
-        title: r.title,
-        weight: Number(r.weight),
-        tranchePct: Number(r.tranchePct),
-        dateLabel: r.dateLabel || undefined,
+      milestones: values.milestones.map((milestone) => ({
+        title: milestone.title,
+        weight: Number(milestone.weight),
+        tranchePct: Number(milestone.tranchePct),
+        dateLabel: milestone.dateLabel,
       })),
     } as unknown as CreateProjectInput;
 
@@ -156,73 +119,51 @@ export function ProjectWizard() {
         toast("Draft created");
         router.push(`/catalogue/${detail.id}`);
       },
-      onError: (e) => toast(e instanceof ApiError ? e.message : "Create failed", "error"),
+      onError: (error) => toast(error instanceof ApiError ? error.message : "Create failed", "error"),
     });
-  }
+  });
 
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 18 }}>
+      <div className="mb-4.5">
         <Link
           href="/catalogue"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 13,
-            color: "var(--muted)",
-            fontWeight: 600,
-            marginBottom: 10,
-          }}
+          className="mb-2.5 inline-flex items-center gap-1 text-[13px] font-semibold text-muted"
         >
           <Icon.chevL size={16} />
           Catalogue
         </Link>
-        <h1 style={{ margin: 0, fontSize: 23, fontWeight: 700, letterSpacing: "-.02em" }}>
-          New project
-        </h1>
+        <h1 className="m-0 text-[23px] font-bold tracking-[-.02em]">New project</h1>
       </div>
 
       {/* Stepper */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {STEPS.map((s, i) => {
-          const on = i === step;
-          const done = i < step;
+      <div className="mb-5 flex flex-wrap gap-2">
+        {STEPS.map((label, index) => {
+          const on = index === step;
+          const done = index < step;
           return (
             <button
-              key={s}
-              onClick={() => setStep(i)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 13px",
-                borderRadius: 9,
-                cursor: "pointer",
-                fontSize: 12.5,
-                fontWeight: 700,
-                background: on ? "var(--primary-tint)" : "#fff",
-                border: `1px solid ${on ? "var(--primary-accent)" : "var(--line)"}`,
-                color: on ? "var(--brand)" : "var(--muted)",
-              }}
+              key={label}
+              onClick={() => setStep(index)}
+              className={cx(
+                "inline-flex cursor-pointer items-center gap-2 rounded-[9px] border px-3.25 py-2 text-[12.5px] font-bold",
+                on ? "border-primary-accent bg-primary-tint text-brand" : "border-line bg-surface text-muted",
+              )}
             >
               <span
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 99,
-                  display: "grid",
-                  placeItems: "center",
-                  fontSize: 11,
-                  flex: "none",
-                  background: done ? "var(--success)" : on ? "var(--primary-accent)" : "#EEF1EF",
-                  color: done || on ? "#fff" : "var(--muted)",
-                }}
+                className={cx(
+                  "grid h-5 w-5 flex-none place-items-center rounded-full text-[11px]",
+                  done
+                    ? "bg-success text-white"
+                    : on
+                      ? "bg-primary-accent text-white"
+                      : "bg-[#EEF1EF] text-muted",
+                )}
               >
-                {done ? <Icon.check size={12} /> : i + 1}
+                {done ? <Icon.check size={12} /> : index + 1}
               </span>
-              {s}
+              {label}
             </button>
           );
         })}
@@ -231,30 +172,27 @@ export function ProjectWizard() {
       <Card>
         {/* Step: Basics */}
         {step === 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Field label="Project title">
-              <AInput value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Lekki Heights Residences" style={{ width: "100%" }} />
+          <div className="flex flex-col gap-4">
+            <Field label="Project title" error={errors.title?.message}>
+              <Input placeholder="e.g. Lekki Heights Residences" error={!!errors.title} {...register("title")} />
             </Field>
-            <Field label="Summary">
-              <AInput value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="One-line investor summary" style={{ width: "100%" }} />
+            <Field label="Summary" error={errors.summary?.message}>
+              <Textarea placeholder="One-line investor summary" error={!!errors.summary} {...register("summary")} />
             </Field>
-            <Field label="Description" optional>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Full project description (optional)" style={textareaStyle} />
-            </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <Field label="Location">
-                <AInput value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lekki, Lagos" style={{ width: "100%" }} />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Location" error={errors.location?.message}>
+                <Input placeholder="e.g. Lekki, Lagos" error={!!errors.location} {...register("location")} />
               </Field>
-              <Field label="Category">
-                <AInput value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Residential" style={{ width: "100%" }} />
+              <Field label="Category" error={errors.category?.message}>
+                <Input placeholder="e.g. Residential" error={!!errors.category} {...register("category")} />
               </Field>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <Field label="Developer / SPV name">
-                <AInput value={spvName} onChange={(e) => setSpvName(e.target.value)} placeholder="e.g. Edifice SPV 14 Ltd" style={{ width: "100%" }} />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Developer / SPV name" error={errors.spvName?.message}>
+                <Input placeholder="e.g. Edifice SPV 14 Ltd" error={!!errors.spvName} {...register("spvName")} />
               </Field>
-              <Field label="RC number" optional>
-                <AInput value={rcNumber} onChange={(e) => setRcNumber(e.target.value)} placeholder="e.g. RC 1234567" style={{ width: "100%" }} />
+              <Field label="RC number" optional error={errors.rcNumber?.message}>
+                <Input placeholder="e.g. RC 1234567" error={!!errors.rcNumber} {...register("rcNumber")} />
               </Field>
             </div>
           </div>
@@ -262,50 +200,60 @@ export function ProjectWizard() {
 
         {/* Step: Offer terms */}
         {step === 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <Field label="Target raise (NGN)">
-                <AInput value={target} onChange={(e) => setTarget(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" placeholder="e.g. 250000000" style={{ width: "100%" }} />
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Target raise (NGN)" error={errors.targetNaira?.message}>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="e.g. 250000000"
+                  error={!!errors.targetNaira}
+                  {...register("targetNaira")}
+                />
               </Field>
-              <Field label="Total shares">
-                <AInput value={totalShares} onChange={(e) => setTotalShares(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" placeholder="e.g. 250000" style={{ width: "100%" }} />
+              <Field label="Total shares" error={errors.totalShares?.message}>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="e.g. 250000"
+                  error={!!errors.totalShares}
+                  {...register("totalShares")}
+                />
               </Field>
             </div>
-            <Field label="Minimum shares per investor" optional>
-              <AInput value={minShares} onChange={(e) => setMinShares(e.target.value.replace(/[^\d]/g, ""))} inputMode="numeric" placeholder="e.g. 10" style={{ width: "100%" }} />
+            <Field label="Minimum shares per investor" optional error={errors.minShares?.message}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="e.g. 10"
+                error={!!errors.minShares}
+                {...register("minShares")}
+              />
             </Field>
             <Field label="Security type">
               <Segmented
-                options={[
-                  { value: "EQUITY_SHARES", label: "Equity shares" },
-                  { value: "DEBT_NOTE", label: "Debt note" },
-                  { value: "PROFIT_PARTICIPATION", label: "Profit-participation" },
-                ]}
+                options={SECURITY_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
                 value={securityType}
-                onChange={(v) => setSecurityType(v as SecurityType)}
+                onChange={(value) =>
+                  setValue("securityType", value as ProjectWizardValues["securityType"])
+                }
               />
             </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <Field label="Tenor">
-                <AInput value={tenor} onChange={(e) => setTenor(e.target.value)} placeholder="e.g. 36 months" style={{ width: "100%" }} />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Tenor" error={errors.tenor?.message}>
+                <Input placeholder="e.g. 36 months" error={!!errors.tenor} {...register("tenor")} />
               </Field>
-              <Field label="Projected return (%)">
-                <AInput value={projectedReturn} onChange={(e) => setProjectedReturn(e.target.value.replace(/[^\d.]/g, ""))} inputMode="decimal" placeholder="e.g. 22" style={{ width: "100%" }} />
+              <Field label="Projected return (%)" error={errors.projectedReturn?.message}>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="e.g. 22"
+                  error={!!errors.projectedReturn}
+                  {...register("projectedReturn")}
+                />
               </Field>
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 9,
-                alignItems: "flex-start",
-                padding: "11px 13px",
-                borderRadius: 9,
-                background: "#FCF3D9",
-                color: "#7A5A00",
-                fontSize: 12.5,
-                lineHeight: 1.5,
-              }}
-            >
+            <div className="flex items-start gap-2.25 rounded-[9px] bg-[#FCF3D9] px-3.25 py-2.75 text-[12.5px] leading-normal text-[#7A5A00]">
               <Icon.info size={16} style={{ flex: "none", marginTop: 1 }} />
               <span>
                 No maximum investment to configure — Edifice projects accept any amount per investor.
@@ -317,21 +265,8 @@ export function ProjectWizard() {
         {/* Step: Milestones */}
         {step === 2 && (
           <div>
-            {!(weightsOk && tranchesOk) && (
-              <div
-                style={{
-                  display: "flex",
-                  gap: 9,
-                  alignItems: "flex-start",
-                  marginBottom: 16,
-                  padding: "11px 13px",
-                  borderRadius: 9,
-                  background: "#FDECEA",
-                  color: "var(--danger)",
-                  fontSize: 12.5,
-                  lineHeight: 1.5,
-                }}
-              >
+            {!totalsOk && (
+              <div className="mb-4 flex items-start gap-2.25 rounded-[9px] bg-[#FDECEA] px-3.25 py-2.75 text-[12.5px] leading-normal text-danger">
                 <Icon.alert size={16} style={{ flex: "none", marginTop: 1 }} />
                 <span>
                   Weights total {weightTotal}% and tranches total {trancheTotal}%. Both must equal
@@ -340,46 +275,31 @@ export function ProjectWizard() {
               </div>
             )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {milestones.map((m, i) => (
+            <div className="flex flex-col gap-2.5">
+              {fields.map((field, index) => (
                 <div
-                  key={i}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 90px 90px 120px 36px",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
+                  key={field.id}
+                  className="grid grid-cols-[1fr_90px_90px_120px_36px] items-center gap-2.5"
                 >
-                  <AInput value={m.title} onChange={(e) => updateMilestone(i, { title: e.target.value })} placeholder="Milestone title" style={{ width: "100%" }} />
-                  <AInput
-                    value={String(m.weight)}
-                    onChange={(e) => updateMilestone(i, { weight: Number(e.target.value.replace(/[^\d]/g, "")) || 0 })}
+                  <Input placeholder="Milestone title" {...register(`milestones.${index}.title`)} />
+                  <Input
+                    type="number"
                     inputMode="numeric"
                     placeholder="Weight"
-                    style={{ width: "100%" }}
+                    {...register(`milestones.${index}.weight`)}
                   />
-                  <AInput
-                    value={String(m.tranchePct)}
-                    onChange={(e) => updateMilestone(i, { tranchePct: Number(e.target.value.replace(/[^\d]/g, "")) || 0 })}
+                  <Input
+                    type="number"
                     inputMode="numeric"
                     placeholder="Tranche"
-                    style={{ width: "100%" }}
+                    {...register(`milestones.${index}.tranchePct`)}
                   />
-                  <AInput value={m.dateLabel} onChange={(e) => updateMilestone(i, { dateLabel: e.target.value })} placeholder="Date label" style={{ width: "100%" }} />
+                  <Input placeholder="Date label" {...register(`milestones.${index}.dateLabel`)} />
                   <button
-                    onClick={() => removeMilestone(i)}
+                    type="button"
+                    onClick={() => remove(index)}
                     title="Remove"
-                    style={{
-                      height: 36,
-                      border: "1px solid var(--line)",
-                      borderRadius: 8,
-                      background: "#fff",
-                      cursor: "pointer",
-                      color: "var(--danger)",
-                      display: "grid",
-                      placeItems: "center",
-                    }}
+                    className="grid h-9 cursor-pointer place-items-center rounded-md border border-line bg-surface text-danger"
                   >
                     <Icon.close size={16} />
                   </button>
@@ -387,16 +307,31 @@ export function ProjectWizard() {
               ))}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14 }}>
-              <Button variant="secondary" size="sm" leftIcon={<Icon.plus size={15} />} onClick={addMilestone}>
+            <div className="mt-3.5 flex items-center justify-between">
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Icon.plus size={15} />}
+                onClick={() => append({ title: "", weight: 0, tranchePct: 0, dateLabel: "" })}
+              >
                 Add milestone
               </Button>
-              <div style={{ display: "flex", gap: 18, fontSize: 12.5, fontWeight: 600 }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: weightsOk ? "var(--success)" : "var(--danger)" }}>
+              <div className="flex gap-4.5 text-[12.5px] font-semibold">
+                <span
+                  className={cx(
+                    "inline-flex items-center gap-1.5",
+                    weightsOk ? "text-success" : "text-danger",
+                  )}
+                >
                   {weightsOk && <Icon.check size={14} />}
                   Weight = {weightTotal}%
                 </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: tranchesOk ? "var(--success)" : "var(--danger)" }}>
+                <span
+                  className={cx(
+                    "inline-flex items-center gap-1.5",
+                    tranchesOk ? "text-success" : "text-danger",
+                  )}
+                >
                   {tranchesOk && <Icon.check size={14} />}
                   Tranche = {trancheTotal}%
                 </span>
@@ -407,12 +342,12 @@ export function ProjectWizard() {
 
         {/* Step: Media */}
         {step === 3 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="flex flex-col gap-3.5">
             <DashedBox label="Drag & drop project photos here, or click to upload" height={160} />
-            <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
+            <div className="text-[12.5px] text-muted">
               Tip: the first image becomes the cover. Set cover by reordering once uploaded.
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            <div className="grid grid-cols-4 gap-2.5">
               <DashedBox label="Set cover" height={90} />
               <DashedBox label="+ Photo" height={90} />
               <DashedBox label="+ 3D render" height={90} />
@@ -423,86 +358,66 @@ export function ProjectWizard() {
 
         {/* Step: Documents */}
         {step === 4 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="flex flex-col gap-3.5">
             <DashedBox label="Upload offer documents (PDF)" height={140} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {["Information memorandum", "SPV incorporation certificate", "Title documents", "Independent valuation"].map((d) => (
-                <div
-                  key={d}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    border: "1px solid var(--line)",
-                    borderRadius: 9,
-                    fontSize: 13,
-                  }}
-                >
-                  <Icon.doc size={16} color="var(--muted)" />
-                  <span style={{ flex: 1 }}>{d}</span>
-                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Not uploaded</span>
-                </div>
-              ))}
+            <div className="flex flex-col gap-2">
+              {["Information memorandum", "SPV incorporation certificate", "Title documents", "Independent valuation"].map(
+                (document) => (
+                  <div
+                    key={document}
+                    className="flex items-center gap-2.5 rounded-[9px] border border-line px-3 py-2.5 text-[13px]"
+                  >
+                    <Icon.doc size={16} color="var(--muted)" />
+                    <span className="flex-1">{document}</span>
+                    <span className="text-xs text-muted">Not uploaded</span>
+                  </div>
+                ),
+              )}
             </div>
           </div>
         )}
 
         {/* Step: Review */}
         {step === 5 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 700 }}>Completeness checklist</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-3.5">
+            <div className="text-[14.5px] font-bold">Completeness checklist</div>
+            <div className="flex flex-col gap-2">
               {[
-                { label: "Basics (title & location)", ok: basicsOk },
-                { label: "Offer terms (target & return)", ok: offerOk },
+                { label: "Basics (title & location)", ok: !errors.title && !errors.location },
+                { label: "Offer terms (target & return)", ok: !errors.targetNaira && !errors.projectedReturn },
                 { label: `Milestone weights = 100% (${weightTotal}%)`, ok: weightsOk },
                 { label: `Milestone tranches = 100% (${trancheTotal}%)`, ok: tranchesOk },
                 { label: "Cover image set", ok: true },
                 { label: "3D / 360° media", ok: true },
-              ].map((c) => (
+              ].map((item) => (
                 <div
-                  key={c.label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    border: "1px solid var(--line)",
-                    borderRadius: 9,
-                    fontSize: 13,
-                  }}
+                  key={item.label}
+                  className="flex items-center gap-2.5 rounded-[9px] border border-line px-3 py-2.5 text-[13px]"
                 >
                   <span
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 99,
-                      display: "grid",
-                      placeItems: "center",
-                      flex: "none",
-                      background: c.ok ? "var(--success)" : "#EEF1EF",
-                      color: c.ok ? "#fff" : "var(--muted)",
-                    }}
+                    className={cx(
+                      "grid h-5.5 w-5.5 flex-none place-items-center rounded-full",
+                      item.ok ? "bg-success text-white" : "bg-[#EEF1EF] text-muted",
+                    )}
                   >
-                    {c.ok ? <Icon.check size={13} /> : <Icon.close size={13} />}
+                    {item.ok ? <Icon.check size={13} /> : <Icon.close size={13} />}
                   </span>
-                  <span style={{ flex: 1, fontWeight: 600 }}>{c.label}</span>
+                  <span className="flex-1 font-semibold">{item.label}</span>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 4 }}>
+            <div className="mt-1">
               <Button
                 variant="primary"
                 leftIcon={<Icon.check size={16} />}
-                disabled={!canCreate}
-                busy={create.isPending}
-                onClick={handleCreate}
+                disabled={!totalsOk}
+                busy={isSubmitting || create.isPending}
+                onClick={onSubmit}
               >
                 Create draft
               </Button>
-              {!canCreate && (
-                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>
+              {!totalsOk && (
+                <div className="mt-2 text-xs text-muted">
                   Complete the required fields and ensure milestone weights and tranches each total
                   100% to create the draft.
                 </div>
@@ -513,12 +428,20 @@ export function ProjectWizard() {
       </Card>
 
       {/* Bottom nav */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
-        <Button variant="secondary" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+      <div className="mt-4 flex justify-between">
+        <Button
+          variant="secondary"
+          disabled={step === 0}
+          onClick={() => setStep((current) => Math.max(0, current - 1))}
+        >
           Back
         </Button>
         {step < STEPS.length - 1 && (
-          <Button variant="primary" rightIcon={<Icon.arrowR size={16} />} onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+          <Button
+            variant="primary"
+            rightIcon={<Icon.arrowR size={16} />}
+            onClick={() => setStep((current) => Math.min(STEPS.length - 1, current + 1))}
+          >
             Continue
           </Button>
         )}

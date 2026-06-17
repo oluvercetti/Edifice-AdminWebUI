@@ -20,7 +20,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (status === "idle" || status === "loading") {
     return (
-      <div className="ed-auth-stage" style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
+      <div className="ed-auth-stage grid min-h-screen place-items-center">
         <Spinner size={40} color="#fff" />
       </div>
     );
