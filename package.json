@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
-    "openapi:gen": "openapi-typescript http://localhost:4000/v1/docs-json -o src/lib/api/generated/schema.ts"
+    "openapi:gen": "openapi-typescript http://localhost:4000/v1/admin/docs-json -o src/lib/api/generated/schema.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
