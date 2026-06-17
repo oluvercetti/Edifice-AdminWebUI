@@ -38,7 +38,7 @@ function Brand() {
       </span>
       <div>
         <div className="text-base font-bold tracking-[-.01em]">Edifice</div>
-        <div className="text-[10.5px] font-bold tracking-[.05em] text-muted">ADMIN CONSOLE · INTERNAL USE</div>
+        <div className="text-[10.5px] font-bold tracking-tight text-muted">ADMIN CONSOLE · INTERNAL USE</div>
       </div>
     </div>
   );
@@ -115,7 +115,7 @@ export function AuthScreens() {
     return (
       <Stage>
         <div className="text-center">
-          <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-[14px] bg-[#FDECEA] text-danger">
+          <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-lg bg-[#FDECEA] text-danger">
             <Icon.lock size={26} />
           </span>
           <h1 className="mb-1.5 text-[22px] font-bold">Access denied</h1>

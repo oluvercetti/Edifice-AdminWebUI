@@ -292,7 +292,7 @@ function StreamCell({
         <div className="flex items-center gap-2">
           <span
             className={cx(
-              "h-[9px] w-[9px] flex-none rounded-full",
+              "h-2.25 w-2.25 flex-none rounded-full",
               streaming ? "animate-[ed-pulse_1.6s_infinite] bg-[#3FCF8E]" : "bg-[#CDD4D0]",
             )}
           />
@@ -695,7 +695,7 @@ function RulesPanel({ readOnly }: { readOnly: boolean }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-bold text-ink">{rule.name}</span>
-                  <span className="inline-flex h-5 items-center rounded-[6px] border border-line px-2 text-[11px] font-bold text-muted">
+                  <span className="inline-flex h-5 items-center rounded-sm border border-line px-2 text-[11px] font-bold text-muted">
                     {rule.type}
                   </span>
                 </div>
