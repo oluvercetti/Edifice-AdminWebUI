@@ -703,6 +703,245 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/investors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Investor accounts */
+        get: operations["InvestorsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/investors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Investor detail + verification history */
+        get: operations["InvestorsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/investors/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend an investor account */
+        post: operations["InvestorsController_suspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/investors/{id}/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reinstate a suspended investor */
+        post: operations["InvestorsController_reinstate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/investors/{id}/identity/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve an identity verification (edge case) */
+        post: operations["InvestorsController_approveIdentity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/investors/{id}/identity/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject an identity verification */
+        post: operations["InvestorsController_rejectIdentity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unified case + complaint queue */
+        get: operations["CasesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/cases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Case detail */
+        get: operations["CasesController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/cases/{id}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign the case to me */
+        post: operations["CasesController_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/cases/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve the case */
+        post: operations["CasesController_resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business metrics snapshot */
+        get: operations["ReportsController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/admins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List admin users */
+        get: operations["AdminUsersController_list"];
+        put?: never;
+        /** Invite an admin user */
+        post: operations["AdminUsersController_invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/admins/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit roles / status / MFA */
+        patch: operations["AdminUsersController_update"];
+        trace?: never;
+    };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Immutable admin action log */
+        get: operations["AuditController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/auth/login": {
         parameters: {
             query?: never;
@@ -1225,6 +1464,139 @@ export interface components {
             disbursedMinor: string;
             netEscrowMinor: string;
             lines: components["schemas"]["ReconLineDto"][];
+        };
+        InvestorRowDto: {
+            id: string;
+            name: string;
+            email: string;
+            /** @description Verified | Review | Unverified */
+            verified: string;
+            investedMinor: string;
+            holdings: number;
+            /** @description Active | Suspended */
+            status: string;
+            /** Format: date-time */
+            joined: string;
+        };
+        VerificationStepDto: {
+            label: string;
+            /** @description passed | pending | failed | none */
+            status: string;
+            detail: string;
+        };
+        InvestorTxnDto: {
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            type: string;
+            amountMinor: string;
+        };
+        InvestorDetailDto: {
+            id: string;
+            name: string;
+            email: string;
+            /** @description Verified | Review | Unverified */
+            verified: string;
+            investedMinor: string;
+            holdings: number;
+            /** @description Active | Suspended */
+            status: string;
+            /** Format: date-time */
+            joined: string;
+            verification: components["schemas"]["VerificationStepDto"][];
+            transactions: components["schemas"]["InvestorTxnDto"][];
+        };
+        CaseRowDto: {
+            id: string;
+            /** @description Complaint | Flagged txn */
+            type: string;
+            subject: string;
+            investor: string | null;
+            /** @description High | Med | Low */
+            priority: string;
+            /** @description Open | Investigating | Resolved */
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            assignee: string | null;
+        };
+        CaseDetailDto: {
+            id: string;
+            /** @description Complaint | Flagged txn */
+            type: string;
+            subject: string;
+            investor: string | null;
+            /** @description High | Med | Low */
+            priority: string;
+            /** @description Open | Investigating | Resolved */
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            assignee: string | null;
+            body: string | null;
+        };
+        GmvPointDto: {
+            month: string;
+            amountMinor: string;
+        };
+        ProjectPerfDto: {
+            id: string;
+            title: string;
+            raisedMinor: string;
+            investors: number;
+            pctComplete: number;
+            projectedReturn: string;
+        };
+        ReportsDto: {
+            /** @description Gross investment volume (Σ raised). */
+            gmvMinor: string;
+            fumMinor: string;
+            escrowedMinor: string;
+            disbursedMinor: string;
+            /** @description Projected returns owed across holdings. */
+            payoutLiabilitiesMinor: string;
+            /** @description Published / total projects, percent. */
+            raiseSuccessRate: number;
+            gmvByMonth: components["schemas"]["GmvPointDto"][];
+            projects: components["schemas"]["ProjectPerfDto"][];
+        };
+        AdminUserRowDto: {
+            id: string;
+            name: string;
+            email: string;
+            roles: ("SUPER" | "CATALOGUE" | "FINANCE" | "OPS" | "AUDITOR")[];
+            /** @description Active | Suspended */
+            status: string;
+            mfaEnabled: boolean;
+            /** Format: date-time */
+            lastActive: string | null;
+        };
+        InviteAdminDto: {
+            email: string;
+            name?: string;
+            roles: ("SUPER" | "CATALOGUE" | "FINANCE" | "OPS" | "AUDITOR")[];
+            mfaEnabled?: boolean;
+        };
+        UpdateAdminDto: {
+            roles?: ("SUPER" | "CATALOGUE" | "FINANCE" | "OPS" | "AUDITOR")[];
+            /** @enum {string} */
+            status?: "ACTIVE" | "SUSPENDED";
+            mfaEnabled?: boolean;
+        };
+        DiffFieldDto: {
+            field: string;
+            from: string;
+            to: string;
+        };
+        AuditEntryDto: {
+            id: string;
+            actor: string | null;
+            role: string | null;
+            action: string;
+            entity: string;
+            /** Format: date-time */
+            at: string;
+            diff: components["schemas"]["DiffFieldDto"][];
         };
         AdminLoginDto: {
             /** @example tunde.b@edifice.ng */
@@ -2187,6 +2559,317 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReconciliationDto"];
+                };
+            };
+        };
+    };
+    InvestorsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorRowDto"][];
+                };
+            };
+        };
+    };
+    InvestorsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorDetailDto"];
+                };
+            };
+        };
+    };
+    InvestorsController_suspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorDetailDto"];
+                };
+            };
+        };
+    };
+    InvestorsController_reinstate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorDetailDto"];
+                };
+            };
+        };
+    };
+    InvestorsController_approveIdentity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorDetailDto"];
+                };
+            };
+        };
+    };
+    InvestorsController_rejectIdentity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestorDetailDto"];
+                };
+            };
+        };
+    };
+    CasesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRowDto"][];
+                };
+            };
+        };
+    };
+    CasesController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetailDto"];
+                };
+            };
+        };
+    };
+    CasesController_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetailDto"];
+                };
+            };
+        };
+    };
+    CasesController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetailDto"];
+                };
+            };
+        };
+    };
+    ReportsController_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRowDto"][];
+                };
+            };
+        };
+    };
+    AdminUsersController_invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteAdminDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRowDto"];
+                };
+            };
+        };
+    };
+    AdminUsersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdminDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRowDto"];
+                };
+            };
+        };
+    };
+    AuditController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryDto"][];
                 };
             };
         };

@@ -129,3 +129,105 @@ export interface CatalogueDetail {
   useOfProceeds: [string, number][];
   milestones: AdminMilestone[];
 }
+
+// ── A6 Investors ─────────────────────────────────────────────────────────────
+
+export interface Investor {
+  id: string;
+  name: string;
+  email: string;
+  verified: string; // Verified | Review | Unverified
+  invested: number;
+  holdings: number;
+  status: string; // Active | Suspended
+  joined: string;
+}
+
+export interface VerificationStep {
+  label: string;
+  status: string; // passed | pending | failed | none
+  detail: string;
+}
+
+export interface InvestorTxn {
+  id: string;
+  occurredAt: string;
+  type: string;
+  amount: number;
+}
+
+export interface InvestorDetail extends Investor {
+  verification: VerificationStep[];
+  transactions: InvestorTxn[];
+}
+
+// ── A7 Cases ─────────────────────────────────────────────────────────────────
+
+export interface CaseRow {
+  id: string;
+  type: string; // Complaint | Flagged txn
+  subject: string;
+  investor: string | null;
+  priority: string; // High | Med | Low
+  status: string; // Open | Investigating | Resolved
+  createdAt: string;
+  assignee: string | null;
+  body?: string | null;
+}
+
+// ── A8 Reports ───────────────────────────────────────────────────────────────
+
+export interface GmvPoint {
+  month: string;
+  amount: number;
+}
+
+export interface ProjectPerf {
+  id: string;
+  title: string;
+  raised: number;
+  investors: number;
+  pctComplete: number;
+  projectedReturn: string;
+}
+
+export interface Reports {
+  gmv: number;
+  fum: number;
+  escrowed: number;
+  disbursed: number;
+  payoutLiabilities: number;
+  raiseSuccessRate: number;
+  gmvByMonth: GmvPoint[];
+  projects: ProjectPerf[];
+}
+
+// ── A9 Admin users ───────────────────────────────────────────────────────────
+
+export interface AdminUserRow {
+  id: string;
+  name: string;
+  email: string;
+  roles: string[];
+  status: string; // ACTIVE | SUSPENDED
+  mfaEnabled: boolean;
+  lastActive: string | null;
+}
+
+// ── A10 Audit log ────────────────────────────────────────────────────────────
+
+export interface DiffField {
+  field: string;
+  from: string;
+  to: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  actor: string | null;
+  role: string | null;
+  action: string;
+  entity: string;
+  at: string;
+  diff: DiffField[];
+}

@@ -61,3 +61,21 @@ export const projectWizardSchema = z.object({
 export type ProjectWizardValues = z.infer<typeof projectWizardSchema>;
 /** Pre-coercion field types (what the inputs hold) for useForm's input generic. */
 export type ProjectWizardInput = z.input<typeof projectWizardSchema>;
+
+// ── A9 Invite admin ──────────────────────────────────────────────────────────
+
+export const ADMIN_ROLE_OPTIONS = [
+  { value: "SUPER", label: "Super Admin", powers: "Everything" },
+  { value: "CATALOGUE", label: "Catalogue", powers: "Projects & content" },
+  { value: "FINANCE", label: "Finance", powers: "Money, monitoring, disbursement" },
+  { value: "OPS", label: "Operations", powers: "Accounts & complaints" },
+  { value: "AUDITOR", label: "Auditor", powers: "Read-only + export" },
+] as const;
+
+export const inviteAdminSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  name: z.string().optional(),
+  roles: z.array(z.enum(["SUPER", "CATALOGUE", "FINANCE", "OPS", "AUDITOR"])).min(1, "Assign at least one role"),
+  mfaEnabled: z.boolean(),
+});
+export type InviteAdminValues = z.infer<typeof inviteAdminSchema>;

@@ -166,3 +166,68 @@ export const rejectDisbursement = (id: string): Promise<Disbursement> =>
 
 export const getReconciliation = (): Promise<Reconciliation> =>
   api<ReconciliationDto>("/admin/reconciliation").then(mapReconciliation);
+
+// ── A6–A10 ───────────────────────────────────────────────────────────────────
+import {
+  mapAdminUser,
+  mapAuditEntry,
+  mapCase,
+  mapInvestor,
+  mapInvestorDetail,
+  mapReports,
+} from "./mappers";
+import type {
+  AdminUserRow,
+  AuditEntry,
+  CaseRow,
+  Investor,
+  InvestorDetail,
+  Reports,
+} from "./types";
+
+type InvestorRowDtoT = components["schemas"]["InvestorRowDto"];
+type InvestorDetailDtoT = components["schemas"]["InvestorDetailDto"];
+type CaseRowDtoT = components["schemas"]["CaseRowDto"];
+type ReportsDtoT = components["schemas"]["ReportsDto"];
+type AdminUserRowDtoT = components["schemas"]["AdminUserRowDto"];
+type AuditEntryDtoT = components["schemas"]["AuditEntryDto"];
+export type InviteAdminInput = components["schemas"]["InviteAdminDto"];
+export type UpdateAdminInput = components["schemas"]["UpdateAdminDto"];
+
+// A6 — Investors
+export const getInvestors = (): Promise<Investor[]> =>
+  api<InvestorRowDtoT[]>("/admin/investors").then((d) => d.map(mapInvestor));
+export const getInvestor = (id: string): Promise<InvestorDetail> =>
+  api<InvestorDetailDtoT>(`/admin/investors/${encodeURIComponent(id)}`).then(mapInvestorDetail);
+const investorAction = (id: string, action: string) =>
+  api<InvestorDetailDtoT>(`/admin/investors/${encodeURIComponent(id)}/${action}`, {
+    method: "POST",
+  }).then(mapInvestorDetail);
+export const suspendInvestor = (id: string) => investorAction(id, "suspend");
+export const reinstateInvestor = (id: string) => investorAction(id, "reinstate");
+export const approveIdentity = (id: string) => investorAction(id, "identity/approve");
+export const rejectIdentity = (id: string) => investorAction(id, "identity/reject");
+
+// A7 — Cases
+export const getCases = (): Promise<CaseRow[]> =>
+  api<CaseRowDtoT[]>("/admin/cases").then((d) => d.map(mapCase));
+export const assignCase = (id: string): Promise<CaseRow> =>
+  api<CaseRowDtoT>(`/admin/cases/${id}/assign`, { method: "POST" }).then(mapCase);
+export const resolveCase = (id: string): Promise<CaseRow> =>
+  api<CaseRowDtoT>(`/admin/cases/${id}/resolve`, { method: "POST" }).then(mapCase);
+
+// A8 — Reports
+export const getReports = (): Promise<Reports> =>
+  api<ReportsDtoT>("/admin/reports").then(mapReports);
+
+// A9 — Admin users
+export const getAdminUsers = (): Promise<AdminUserRow[]> =>
+  api<AdminUserRowDtoT[]>("/admin/admins").then((d) => d.map(mapAdminUser));
+export const inviteAdmin = (body: InviteAdminInput): Promise<AdminUserRow> =>
+  api<AdminUserRowDtoT>("/admin/admins", { method: "POST", body }).then(mapAdminUser);
+export const updateAdmin = (id: string, body: UpdateAdminInput): Promise<AdminUserRow> =>
+  api<AdminUserRowDtoT>(`/admin/admins/${id}`, { method: "PATCH", body }).then(mapAdminUser);
+
+// A10 — Audit log
+export const getAudit = (): Promise<AuditEntry[]> =>
+  api<AuditEntryDtoT[]>("/admin/audit").then((d) => d.map(mapAuditEntry));

@@ -160,3 +160,104 @@ export function mapCatalogueDetail(d: CatalogueDetailDto): CatalogueDetail {
     })),
   };
 }
+
+// ── A6–A10 ───────────────────────────────────────────────────────────────────
+
+type InvestorRowDto = components["schemas"]["InvestorRowDto"];
+type InvestorDetailDto = components["schemas"]["InvestorDetailDto"];
+type CaseRowDto = components["schemas"]["CaseRowDto"];
+type CaseDetailDto = components["schemas"]["CaseDetailDto"];
+type ReportsDto = components["schemas"]["ReportsDto"];
+type AdminUserRowDto = components["schemas"]["AdminUserRowDto"];
+type AuditEntryDto = components["schemas"]["AuditEntryDto"];
+
+export function mapInvestor(d: InvestorRowDto): import("./types").Investor {
+  return {
+    id: d.id,
+    name: d.name,
+    email: d.email,
+    verified: d.verified,
+    invested: koboToNaira(d.investedMinor),
+    holdings: d.holdings,
+    status: d.status,
+    joined: d.joined,
+  };
+}
+
+export function mapInvestorDetail(d: InvestorDetailDto): import("./types").InvestorDetail {
+  return {
+    ...mapInvestor(d),
+    verification: d.verification.map((step) => ({
+      label: step.label,
+      status: step.status,
+      detail: step.detail,
+    })),
+    transactions: d.transactions.map((txn) => ({
+      id: txn.id,
+      occurredAt: txn.occurredAt,
+      type: txn.type,
+      amount: koboToNaira(txn.amountMinor),
+    })),
+  };
+}
+
+export function mapCase(d: CaseRowDto | CaseDetailDto): import("./types").CaseRow {
+  return {
+    id: d.id,
+    type: d.type,
+    subject: d.subject,
+    investor: d.investor,
+    priority: d.priority,
+    status: d.status,
+    createdAt: d.createdAt,
+    assignee: d.assignee,
+    body: "body" in d ? d.body : undefined,
+  };
+}
+
+export function mapReports(d: ReportsDto): import("./types").Reports {
+  return {
+    gmv: koboToNaira(d.gmvMinor),
+    fum: koboToNaira(d.fumMinor),
+    escrowed: koboToNaira(d.escrowedMinor),
+    disbursed: koboToNaira(d.disbursedMinor),
+    payoutLiabilities: koboToNaira(d.payoutLiabilitiesMinor),
+    raiseSuccessRate: d.raiseSuccessRate,
+    gmvByMonth: d.gmvByMonth.map((point) => ({
+      month: point.month,
+      amount: koboToNaira(point.amountMinor),
+    })),
+    projects: d.projects.map((project) => ({
+      id: project.id,
+      title: project.title,
+      raised: koboToNaira(project.raisedMinor),
+      investors: project.investors,
+      pctComplete: project.pctComplete,
+      projectedReturn: project.projectedReturn,
+    })),
+  };
+}
+
+export function mapAdminUser(d: AdminUserRowDto): import("./types").AdminUserRow {
+  return {
+    id: d.id,
+    name: d.name,
+    email: d.email,
+    roles: d.roles,
+    status: d.status,
+    mfaEnabled: d.mfaEnabled,
+    lastActive: d.lastActive,
+  };
+}
+
+export function mapAuditEntry(d: AuditEntryDto): import("./types").AuditEntry {
+  return {
+    id: d.id,
+    actor: d.actor,
+    role: d.role,
+    action: d.action,
+    entity: d.entity,
+    at: d.at,
+    diff: d.diff.map((field) => ({ field: field.field, from: field.from, to: field.to })),
+  };
+}

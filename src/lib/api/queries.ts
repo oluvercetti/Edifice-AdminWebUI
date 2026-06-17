@@ -178,3 +178,94 @@ export function useUpdateProject(id: string) {
     onSuccess: invalidate,
   });
 }
+
+// ── A6–A10 ───────────────────────────────────────────────────────────────────
+import {
+  approveIdentity,
+  assignCase,
+  getAdminUsers,
+  getAudit,
+  getCases,
+  getInvestor,
+  getInvestors,
+  getReports,
+  inviteAdmin,
+  reinstateInvestor,
+  rejectIdentity,
+  resolveCase,
+  suspendInvestor,
+  updateAdmin,
+  type InviteAdminInput,
+  type UpdateAdminInput,
+} from "./client";
+
+export const peopleKeys = {
+  investors: ["investors"] as const,
+  investor: (id: string) => ["investors", id] as const,
+  cases: ["cases"] as const,
+  reports: ["reports"] as const,
+  adminUsers: ["adminUsers"] as const,
+  audit: ["audit"] as const,
+};
+
+export const useInvestors = () =>
+  useQuery({ queryKey: peopleKeys.investors, queryFn: getInvestors });
+export const useInvestor = (id: string) =>
+  useQuery({
+    queryKey: peopleKeys.investor(id),
+    queryFn: () => getInvestor(id),
+    enabled: Boolean(id),
+  });
+export const useCases = () =>
+  useQuery({ queryKey: peopleKeys.cases, queryFn: getCases });
+export const useReports = () =>
+  useQuery({ queryKey: peopleKeys.reports, queryFn: getReports });
+export const useAdminUsers = () =>
+  useQuery({ queryKey: peopleKeys.adminUsers, queryFn: getAdminUsers });
+export const useAudit = () =>
+  useQuery({ queryKey: peopleKeys.audit, queryFn: getAudit });
+
+const INVESTOR_ACTIONS = {
+  suspend: suspendInvestor,
+  reinstate: reinstateInvestor,
+  approveIdentity,
+  rejectIdentity,
+} as const;
+
+export function useInvestorAction(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: keyof typeof INVESTOR_ACTIONS) => INVESTOR_ACTIONS[action](id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: peopleKeys.investor(id) });
+      void qc.invalidateQueries({ queryKey: peopleKeys.investors });
+      void qc.invalidateQueries({ queryKey: peopleKeys.audit });
+    },
+  });
+}
+
+export function useCaseAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: "assign" | "resolve" }) =>
+      action === "assign" ? assignCase(id) : resolveCase(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: peopleKeys.cases }),
+  });
+}
+
+export function useInviteAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: InviteAdminInput) => inviteAdmin(body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: peopleKeys.adminUsers }),
+  });
+}
+
+export function useUpdateAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateAdminInput }) =>
+      updateAdmin(id, body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: peopleKeys.adminUsers }),
+  });
+}

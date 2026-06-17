@@ -29,6 +29,11 @@ export const ADMIN_NAV: NavItem[] = [
   { id: "monitoring", label: "Transactions", icon: "pulse", roles: ["SUPER", "FINANCE", "AUDITOR"], href: "/monitoring", badge: "live" },
   { id: "disbursements", label: "Disbursements", icon: "check", roles: ["SUPER", "FINANCE"], href: "/disbursements" },
   { id: "reconciliation", label: "Reconciliation", icon: "shieldCheck", roles: ["SUPER", "FINANCE", "AUDITOR"], href: "/reconciliation" },
+  { id: "investors", label: "Investors", icon: "user", roles: ["SUPER", "OPS", "AUDITOR"], href: "/investors" },
+  { id: "cases", label: "Cases", icon: "inbox", roles: ["SUPER", "OPS", "FINANCE"], href: "/cases" },
+  { id: "reports", label: "Reports", icon: "trend", roles: ["SUPER", "FINANCE", "AUDITOR"], href: "/reports" },
+  { id: "admins", label: "Admin users", icon: "shield", roles: ["SUPER"], href: "/admins" },
+  { id: "audit", label: "Audit log", icon: "doc", roles: ["SUPER", "AUDITOR"], href: "/audit" },
 ];
 
 export const isReadOnly = (role: AdminRole | null): boolean => role === "AUDITOR";
