@@ -1027,6 +1027,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the signed-in admin’s password; ends all sessions */
+        post: operations["AdminAuthController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1632,6 +1649,12 @@ export interface components {
         AdminOkDto: {
             /** @example true */
             ok: boolean;
+        };
+        AdminChangePasswordDto: {
+            /** @description The admin’s current password. */
+            currentPassword: string;
+            /** @description The new password (min 8 chars). */
+            newPassword: string;
         };
     };
     responses: never;
@@ -2968,6 +2991,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicAdminDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminChangePasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOkDto"];
                 };
             };
         };
