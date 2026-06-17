@@ -9,6 +9,12 @@ import { cx } from "@/lib/cx";
 import { ApiError } from "@/lib/api/http";
 import { login, verifyMfa } from "@/lib/auth";
 import { adminLoginSchema, type AdminLoginValues } from "@/lib/schemas";
+import { useToast } from "@/providers/ToastProvider";
+
+/** Pull the API message off an error, with a fallback. */
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
 
 // ============================================================
 // A0 — Admin authentication: login → TOTP MFA → console; plus access-denied.
@@ -45,6 +51,7 @@ function Brand() {
 }
 
 export function AuthScreens() {
+  const toast = useToast();
   const [mode, setMode] = useState<Mode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -77,7 +84,9 @@ export function AuthScreens() {
       setDigits(Array(6).fill(""));
       setMode("mfa");
     } catch (error) {
-      setLoginError(error instanceof ApiError ? error.message : "Sign-in failed.");
+      const message = errorMessage(error, "Sign-in failed.");
+      setLoginError(message);
+      toast(message, "error");
     }
   };
 
@@ -86,9 +95,10 @@ export function AuthScreens() {
     setMfaError(false);
     try {
       await verifyMfa(code); // success re-renders the gate to the console
-    } catch {
+    } catch (error) {
       setMfaError(true);
       setDigits(Array(6).fill(""));
+      toast(errorMessage(error, "Verification failed."), "error");
       setTimeout(() => digitInputs.current[0]?.focus(), 50);
     } finally {
       setMfaBusy(false);
