@@ -1043,8 +1043,6 @@ export interface components {
             email: string;
             /** @description True once the 6-digit code has been dispatched. */
             otpSent: boolean;
-            /** @description Dev only (AUTH_EXPOSE_OTP): the code, so the flow is testable without email. */
-            devCode?: string;
         };
         SigninStartDto: {
             /** @example adaeze.o@email.com */
@@ -1098,7 +1096,6 @@ export interface components {
         ForgotPasswordResultDto: {
             /** @example true */
             ok: boolean;
-            devToken?: string;
         };
         ResetPasswordDto: {
             token: string;
@@ -1607,8 +1604,6 @@ export interface components {
         AdminLoginResultDto: {
             /** @description A TOTP challenge is now pending. */
             mfaRequired: boolean;
-            /** @description Dev only (AUTH_EXPOSE_OTP): the current valid TOTP, so the flow is testable without an authenticator app. */
-            devCode?: string;
         };
         AdminMfaDto: {
             /**

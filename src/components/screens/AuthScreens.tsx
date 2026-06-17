@@ -48,7 +48,6 @@ export function AuthScreens() {
   const [mode, setMode] = useState<Mode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [devCode, setDevCode] = useState<string | undefined>();
 
   const {
     register,
@@ -74,8 +73,7 @@ export function AuthScreens() {
   const onLogin = async ({ email, password }: AdminLoginValues) => {
     setLoginError(null);
     try {
-      const result = await login(email, password);
-      setDevCode(result.devCode);
+      await login(email, password);
       setDigits(Array(6).fill(""));
       setMode("mfa");
     } catch (error) {
@@ -184,11 +182,6 @@ export function AuthScreens() {
           <div className="mb-3 flex items-center gap-1.5 text-[12.5px] font-semibold text-danger">
             <Icon.alert size={14} />
             Invalid code. Try again.
-          </div>
-        )}
-        {devCode && (
-          <div className="mb-3.5 rounded-md border border-line bg-canvas px-2.5 py-2 text-xs text-muted">
-            Dev hint — current code: <strong className="text-ink">{devCode}</strong>
           </div>
         )}
         <Button full size="lg" busy={mfaBusy} onClick={() => submitMfa(digits.join(""))} disabled={digits.join("").length !== 6}>

@@ -12,7 +12,7 @@ import { useAdminStore } from "@/stores/admin-store";
 export async function login(email: string, password: string) {
   const result = await adminLogin(email, password);
   useAdminStore.getState().setPendingMfa(true);
-  return result; // { mfaRequired, devCode? }
+  return result; // { mfaRequired }
 }
 
 /** Step 2 — verify the TOTP code; backend sets the session cookies. */
