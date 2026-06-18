@@ -90,16 +90,12 @@ export function MonitoringScreen() {
 // ------------------------------------------------------------
 
 function LiveFeedPanel() {
-  const [streaming, setStreaming] = useState(true);
   const [typeTab, setTypeTab] = useState("All");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [selected, setSelected] = useState<Txn | null>(null);
 
   const type = typeTab === "All" ? undefined : typeTab;
-  const query = useTransactions(
-    { type, flaggedOnly },
-    { refetchInterval: streaming ? 4000 : undefined },
-  );
+  const query = useTransactions({ type, flaggedOnly });
   const { state, data, retry } = useScreenState<Txn[]>(query, {
     isEmpty: (rows) => rows.length === 0,
   });
@@ -192,10 +188,11 @@ function LiveFeedPanel() {
           label="Low-severity flags"
           color={SEVERITY_COLOR.low}
         />
-        <StreamCell
-          streaming={streaming}
+        <RefreshCell
           count={rows.length}
-          onToggle={() => setStreaming((value) => !value)}
+          updatedAt={query.dataUpdatedAt}
+          isFetching={query.isFetching}
+          onRefresh={() => void query.refetch()}
         />
       </div>
 
@@ -285,58 +282,39 @@ function SeverityCell({
   );
 }
 
-function StreamCell({
-  streaming,
+function RefreshCell({
   count,
-  onToggle,
+  updatedAt,
+  isFetching,
+  onRefresh,
 }: {
-  streaming: boolean;
   count: number;
-  onToggle: () => void;
+  updatedAt: number;
+  isFetching: boolean;
+  onRefresh: () => void;
 }) {
+  const updatedLabel = updatedAt
+    ? new Date(updatedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
   return (
-    <div
-      className={cx(
-        "flex flex-col justify-between rounded-xl border border-line px-4.5 py-4 shadow-1",
-        !streaming && "bg-surface",
-      )}
-      style={streaming ? { background: "#0D1F17" } : undefined}
-    >
+    <div className="flex flex-col justify-between rounded-xl border border-line bg-surface px-4.5 py-4 shadow-1">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={cx(
-              "h-2.25 w-2.25 flex-none rounded-full",
-              streaming ? "animate-[ed-pulse_1.6s_infinite] bg-[#3FCF8E]" : "bg-[#CDD4D0]",
-            )}
-          />
-          <span
-            className={cx(
-              "text-sm font-bold",
-              streaming ? "text-white" : "text-ink",
-            )}
-          >
-            {streaming ? "Streaming" : "Paused"}
-          </span>
-        </div>
+        <span className="text-sm font-bold text-ink">Transactions</span>
         <button
-          onClick={onToggle}
-          className={cx(
-            "grid h-7 w-7 cursor-pointer place-items-center rounded-sm border-none",
-            streaming ? "bg-white/12 text-white" : "bg-canvas text-muted",
-          )}
-          title={streaming ? "Pause stream" : "Resume stream"}
+          onClick={onRefresh}
+          disabled={isFetching}
+          className="grid h-7 w-7 cursor-pointer place-items-center rounded-sm border-none bg-canvas text-muted disabled:cursor-default disabled:opacity-50"
+          title="Refresh"
+          aria-label="Refresh transactions"
         >
-          {streaming ? <Icon.lock size={14} /> : <Icon.refresh size={14} />}
+          <Icon.refresh size={14} className={isFetching ? "animate-spin" : undefined} />
         </button>
       </div>
-      <div
-        className={cx(
-          "mt-2.5 text-xs font-semibold",
-          streaming ? "text-white/70" : "text-muted",
-        )}
-      >
-        {count} in view
+      <div className="mt-2.5 text-xs font-semibold text-muted">
+        {count} in view · updated {updatedLabel}
       </div>
     </div>
   );

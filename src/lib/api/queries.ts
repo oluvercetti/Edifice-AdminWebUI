@@ -54,17 +54,18 @@ export const useProject = (id: string) =>
     enabled: Boolean(id),
   });
 
-export const useTransactions = (
-  filter?: { type?: string; flaggedOnly?: boolean },
-  options?: { refetchInterval?: number },
-) =>
+// No interval polling: the feed fetches on mount + on window focus, plus a
+// manual Refresh button in the UI. Avoids constant per-viewer load.
+export const useTransactions = (filter?: {
+  type?: string;
+  flaggedOnly?: boolean;
+}) =>
   useInfiniteQuery({
     queryKey: queryKeys.transactions(filter?.type, filter?.flaggedOnly),
     queryFn: ({ pageParam }) => getTransactions(filter, pageParam),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
     select: (data) => data.pages.flatMap((p) => p.items),
-    refetchInterval: options?.refetchInterval,
   });
 
 export const useFlags = () =>
