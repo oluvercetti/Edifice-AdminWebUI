@@ -1,10 +1,9 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { AInput } from "@/components/admin/primitives";
-import { SecurityModal } from "@/components/admin/SecurityModal";
 import { cx } from "@/lib/cx";
 import { useAdminStore, type AdminRole } from "@/stores/admin-store";
 import { ROLES, isReadOnly, navForRole } from "@/lib/roles";
@@ -80,9 +79,9 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
 }
 
 function TopBar() {
+  const router = useRouter();
   const { admin, viewAs, setViewAs } = useAdminStore();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [securityOpen, setSecurityOpen] = useState(false);
   if (!admin) return null;
   const role = viewAs ?? admin.roles[0];
   const roleMeta = ROLES[role];
@@ -161,7 +160,7 @@ function TopBar() {
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  setSecurityOpen(true);
+                  router.push("/settings");
                 }}
                 className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-sm font-semibold text-ink"
               >
@@ -179,7 +178,6 @@ function TopBar() {
           </>
         )}
       </div>
-      <SecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </header>
   );
 }

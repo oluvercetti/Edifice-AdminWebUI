@@ -53,6 +53,18 @@ export const adminLogout = () =>
 
 export const adminMe = () => api<AdminUser>("/admin/auth/me");
 
+export const updateAdminProfile = (name: string) =>
+  api<AdminUser>("/admin/auth/profile", { method: "PATCH", body: { name } });
+
+export const changeAdminPassword = (
+  currentPassword: string,
+  newPassword: string,
+) =>
+  api<{ ok: boolean }>("/admin/auth/change-password", {
+    method: "POST",
+    body: { currentPassword, newPassword },
+  });
+
 export const acceptInvite = (token: string, password: string) =>
   api<{ mfaSetupRequired: boolean; admin: AdminUser }>(
     "/admin/auth/accept-invite",

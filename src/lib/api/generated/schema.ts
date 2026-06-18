@@ -721,6 +721,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/auth/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update your own profile (display name) */
+        patch: operations["AdminAuthController_updateProfile"];
+        trace?: never;
+    };
     "/v1/admin/auth/change-password": {
         parameters: {
             query?: never;
@@ -1061,6 +1078,7 @@ export interface components {
             mfaEnabled?: boolean;
         };
         UpdateAdminDto: {
+            name?: string;
             roles?: ("SUPER" | "CATALOGUE" | "FINANCE" | "OPS" | "AUDITOR")[];
             /** @enum {string} */
             status?: "ACTIVE" | "SUSPENDED";
@@ -1151,6 +1169,10 @@ export interface components {
         AdminOkDto: {
             /** @example true */
             ok: boolean;
+        };
+        UpdateProfileDto: {
+            /** @description Your display name. */
+            name: string;
         };
         AdminChangePasswordDto: {
             /** @description The admin’s current password. */
@@ -2129,6 +2151,29 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAdminDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_updateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {

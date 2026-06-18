@@ -10,6 +10,18 @@ export const adminLoginSchema = z.object({
 });
 export type AdminLoginValues = z.infer<typeof adminLoginSchema>;
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirm: z.string().min(1, "Confirm your new password"),
+  })
+  .refine((v) => v.newPassword === v.confirm, {
+    message: "Passwords don't match",
+    path: ["confirm"],
+  });
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
+
 export const createPasswordSchema = z
   .object({
     password: z.string().min(8, "Password must be at least 8 characters"),
@@ -85,7 +97,7 @@ export const ADMIN_ROLE_OPTIONS = [
 
 export const inviteAdminSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  name: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
   roles: z.array(z.enum(["SUPER", "CATALOGUE", "FINANCE", "OPS", "AUDITOR"])).min(1, "Assign at least one role"),
   mfaEnabled: z.boolean(),
 });

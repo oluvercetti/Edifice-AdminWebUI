@@ -262,7 +262,14 @@ function AdminModal({
   const onSubmit = handleSubmit((values) => {
     if (editing) {
       update.mutate(
-        { id: editing.id, body: { roles: values.roles, mfaEnabled: values.mfaEnabled } },
+        {
+          id: editing.id,
+          body: {
+            name: values.name,
+            roles: values.roles,
+            mfaEnabled: values.mfaEnabled,
+          },
+        },
         {
           onSuccess: () => {
             toast("Admin updated");
@@ -317,6 +324,14 @@ function AdminModal({
         </div>
 
         <form onSubmit={onSubmit}>
+          <Field label="Name" error={errors.name?.message}>
+            <Input
+              leftIcon={<Icon.user size={16} />}
+              placeholder="Full name"
+              {...register("name")}
+              error={!!errors.name}
+            />
+          </Field>
           <Field label="Email" error={errors.email?.message}>
             <Input
               leftIcon={<Icon.mail size={16} />}
