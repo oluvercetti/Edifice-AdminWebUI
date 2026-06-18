@@ -203,6 +203,7 @@ import {
   resolveCase,
   suspendInvestor,
   updateAdmin,
+  resendAdminInvite,
   type InviteAdminInput,
   type UpdateAdminInput,
 } from "./client";
@@ -289,6 +290,14 @@ export function useUpdateAdmin() {
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: UpdateAdminInput }) =>
       updateAdmin(id, body),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: peopleKeys.adminUsers }),
+  });
+}
+
+export function useResendAdminInvite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => resendAdminInvite(id),
     onSuccess: () => void qc.invalidateQueries({ queryKey: peopleKeys.adminUsers }),
   });
 }

@@ -21,6 +21,7 @@ import { shortDateTime } from "@/lib/txn";
 import {
   useAdminUsers,
   useInviteAdmin,
+  useResendAdminInvite,
   useUpdateAdmin,
 } from "@/lib/api/queries";
 import { useScreenState } from "@/lib/api/use-resource";
@@ -117,10 +118,15 @@ export function AdminUsersScreen() {
     {
       key: "status",
       label: "Status",
-      w: 110,
-      render: (row) => (
-        <Pill status={row.status === "ACTIVE" ? "Active" : "Suspended"} />
-      ),
+      w: 130,
+      render: (row) =>
+        row.pending ? (
+          <Pill color="var(--muted)" background="var(--canvas)" icon="mail">
+            Invite pending
+          </Pill>
+        ) : (
+          <Pill status={row.status === "ACTIVE" ? "Active" : "Suspended"} />
+        ),
     },
     {
       key: "lastActive",
@@ -205,6 +211,7 @@ function AdminModal({
   const toast = useToast();
   const invite = useInviteAdmin();
   const update = useUpdateAdmin();
+  const resend = useResendAdminInvite();
 
   const {
     register,
@@ -222,7 +229,7 @@ function AdminModal({
           roles: editing.roles as InviteAdminValues["roles"],
           mfaEnabled: editing.mfaEnabled,
         }
-      : { email: "", name: "", roles: [], mfaEnabled: true },
+      : { email: "", name: "", roles: [], mfaEnabled: false },
   });
 
   // Re-seed the form whenever the modal target changes (invite ⇄ edit ⇄ row).
@@ -235,7 +242,7 @@ function AdminModal({
             roles: editing.roles as InviteAdminValues["roles"],
             mfaEnabled: editing.mfaEnabled,
           }
-        : { email: "", name: "", roles: [], mfaEnabled: true },
+        : { email: "", name: "", roles: [], mfaEnabled: false },
     );
   }, [editing, reset]);
 
@@ -388,7 +395,25 @@ function AdminModal({
           </div>
 
           <div className="mt-5 flex items-center justify-between gap-2.5">
-            <div>
+            <div className="flex gap-2.5">
+              {editing && editing.pending && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  busy={resend.isPending}
+                  onClick={() =>
+                    resend.mutate(editing.id, {
+                      onSuccess: () => {
+                        toast("Invite resent");
+                        onClose();
+                      },
+                      onError,
+                    })
+                  }
+                >
+                  Resend invite
+                </Button>
+              )}
               {editing && (
                 <Button
                   type="button"

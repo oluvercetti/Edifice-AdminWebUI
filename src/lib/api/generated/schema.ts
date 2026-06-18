@@ -517,6 +517,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/admins/{id}/resend-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend the invite email (pending invites only) */
+        post: operations["AdminUsersController_resendInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/admins/{id}": {
         parameters: {
             query?: never;
@@ -562,6 +579,23 @@ export interface paths {
         put?: never;
         /** Verify staff credentials; sets the pending-MFA cookie */
         post: operations["AdminAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auth/accept-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set your password from an invite link */
+        post: operations["AdminAuthController_acceptInvite"];
         delete?: never;
         options?: never;
         head?: never;
@@ -966,6 +1000,8 @@ export interface components {
             mfaEnabled: boolean;
             /** Format: date-time */
             lastActive: string | null;
+            /** @description Invited but has not set a password / accepted. */
+            pending: boolean;
         };
         InviteAdminDto: {
             email: string;
@@ -1005,17 +1041,6 @@ export interface components {
             /** @example Admin123! */
             password: string;
         };
-        AdminLoginResultDto: {
-            /** @description A TOTP challenge is now pending. */
-            mfaRequired: boolean;
-        };
-        AdminMfaDto: {
-            /**
-             * @description 6-digit TOTP code
-             * @example 123456
-             */
-            code: string;
-        };
         PublicAdminDto: {
             id: string;
             email: string;
@@ -1025,6 +1050,29 @@ export interface components {
             status: "ACTIVE" | "SUSPENDED";
             mfaEnabled: boolean;
         };
+        AdminLoginResultDto: {
+            /** @description A TOTP challenge is now pending. */
+            mfaRequired: boolean;
+            /** @description The signed-in admin — present only when MFA is disabled and the session was issued directly (mfaRequired = false). */
+            admin: components["schemas"]["PublicAdminDto"] | null;
+        };
+        AcceptInviteDto: {
+            /** @description The single-use token from the invite link. */
+            token: string;
+            /** @description The password you’re setting. */
+            password: string;
+        };
+        AdminOkDto: {
+            /** @example true */
+            ok: boolean;
+        };
+        AdminMfaDto: {
+            /**
+             * @description 6-digit TOTP code
+             * @example 123456
+             */
+            code: string;
+        };
         AdminSessionDto: {
             /**
              * @description Access-token lifetime (seconds).
@@ -1032,10 +1080,6 @@ export interface components {
              */
             expiresIn: number;
             admin: components["schemas"]["PublicAdminDto"];
-        };
-        AdminOkDto: {
-            /** @example true */
-            ok: boolean;
         };
         AdminChangePasswordDto: {
             /** @description The admin’s current password. */
@@ -1762,6 +1806,27 @@ export interface operations {
             };
         };
     };
+    AdminUsersController_resendInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRowDto"];
+                };
+            };
+        };
+    };
     AdminUsersController_update: {
         parameters: {
             query?: never;
@@ -1832,6 +1897,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminLoginResultDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_acceptInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptInviteDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOkDto"];
                 };
             };
         };

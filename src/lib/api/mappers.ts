@@ -247,6 +247,7 @@ export function mapAdminUser(d: AdminUserRowDto): import("./types").AdminUserRow
     status: d.status,
     mfaEnabled: d.mfaEnabled,
     lastActive: d.lastActive,
+    pending: d.pending,
   };
 }
 

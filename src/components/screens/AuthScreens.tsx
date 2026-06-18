@@ -80,9 +80,13 @@ export function AuthScreens() {
   const onLogin = async ({ email, password }: AdminLoginValues) => {
     setLoginError(null);
     try {
-      await login(email, password);
-      setDigits(Array(6).fill(""));
-      setMode("mfa");
+      const result = await login(email, password);
+      // MFA disabled → login already set the session; the gate re-renders to
+      // the console. Only advance to the TOTP step when the backend asks.
+      if (result.mfaRequired) {
+        setDigits(Array(6).fill(""));
+        setMode("mfa");
+      }
     } catch (error) {
       const message = errorMessage(error, "Sign-in failed.");
       setLoginError(message);

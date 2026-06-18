@@ -10,6 +10,17 @@ export const adminLoginSchema = z.object({
 });
 export type AdminLoginValues = z.infer<typeof adminLoginSchema>;
 
+export const createPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirm: z.string().min(1, "Confirm your password"),
+  })
+  .refine((v) => v.password === v.confirm, {
+    message: "Passwords don't match",
+    path: ["confirm"],
+  });
+export type CreatePasswordValues = z.infer<typeof createPasswordSchema>;
+
 export const postUpdateSchema = z.object({
   milestoneId: z.string().min(1, "Select a milestone"),
   completion: z.coerce.number().min(0).max(100),

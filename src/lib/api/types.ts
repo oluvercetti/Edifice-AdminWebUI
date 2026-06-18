@@ -212,6 +212,8 @@ export interface AdminUserRow {
   status: string; // ACTIVE | SUSPENDED
   mfaEnabled: boolean;
   lastActive: string | null;
+  /** Invited but hasn't set a password / accepted yet. */
+  pending: boolean;
 }
 
 // ── A10 Audit log ────────────────────────────────────────────────────────────

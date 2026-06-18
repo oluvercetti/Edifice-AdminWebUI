@@ -1,6 +1,6 @@
 "use client";
 import { adminLogin, adminLogout, adminMfa } from "./api/client";
-import { useAdminStore } from "@/stores/admin-store";
+import { useAdminStore, type AdminUser } from "@/stores/admin-store";
 
 // ============================================================
 // Admin auth actions — thin wrappers that call the backend and update the
@@ -8,11 +8,17 @@ import { useAdminStore } from "@/stores/admin-store";
 // backend. Two steps: password (login) → TOTP (verifyMfa).
 // ============================================================
 
-/** Step 1 — verify password; backend sets the pending-MFA cookie. */
+/** Step 1 — verify password. If MFA is enabled the backend sets a pending-MFA
+ *  cookie (caller shows the TOTP step); if not, the backend issues the full
+ *  session directly and returns the admin (we go straight to authenticated). */
 export async function login(email: string, password: string) {
   const result = await adminLogin(email, password);
-  useAdminStore.getState().setPendingMfa(true);
-  return result; // { mfaRequired }
+  if (result.mfaRequired) {
+    useAdminStore.getState().setPendingMfa(true);
+  } else if (result.admin) {
+    useAdminStore.getState().setAdmin(result.admin as AdminUser);
+  }
+  return result; // { mfaRequired, admin? }
 }
 
 /** Step 2 — verify the TOTP code; backend sets the session cookies. */

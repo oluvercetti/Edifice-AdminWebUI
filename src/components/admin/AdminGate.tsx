@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAdminStore } from "@/stores/admin-store";
 import { Shell } from "@/components/admin/Shell";
 import { AuthScreens } from "@/components/screens/AuthScreens";
@@ -8,15 +9,23 @@ import { ContentSkeleton, Skeleton } from "@/components/ui/feedback";
 // ============================================================
 // AdminGate — hydrates the admin session from the httpOnly cookie, then either
 // renders the sign-in flow (A0) or the console shell around the routed page.
+// A few routes are public (an invitee has no session yet) and bypass the gate.
 // ============================================================
 
+const PUBLIC_PATHS = new Set<string>(["/accept-invite"]);
+
 export function AdminGate({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const status = useAdminStore((s) => s.status);
   const hydrate = useAdminStore((s) => s.hydrate);
 
   useEffect(() => {
     if (status === "idle") void hydrate();
   }, [status, hydrate]);
+
+  // Public route (e.g. the invite create-password page) — render it directly,
+  // no session required.
+  if (PUBLIC_PATHS.has(pathname)) return <>{children}</>;
 
   if (status === "idle" || status === "loading") {
     return (
