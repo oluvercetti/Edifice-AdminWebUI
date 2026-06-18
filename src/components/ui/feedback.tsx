@@ -16,6 +16,19 @@ export function Skeleton({
   return <div className="skel" style={{ width, height, borderRadius: radius, ...style }} />;
 }
 
+// Generic content-loading skeleton — a heading bar then a few rows. Used in
+// place of a spinner for page/section loading states.
+export function ContentSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      <Skeleton height={26} width="45%" />
+      <Skeleton height={120} radius={12} />
+      <Skeleton height={72} radius={10} />
+      <Skeleton height={72} radius={10} />
+    </div>
+  );
+}
+
 export function Spinner({
   size = 22,
   strokeWidth = 2.5,

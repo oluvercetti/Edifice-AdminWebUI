@@ -13,14 +13,15 @@ import {
 import { Icon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import {
+  ContentSkeleton,
   EmptyState,
   ErrorState,
   Placeholder,
   Skeleton,
-  Spinner,
 } from "@/components/ui/feedback";
 import { Pill } from "@/components/ui/Pill";
 import { useInvestor, useInvestorAction, useInvestors } from "@/lib/api/queries";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import type { Investor, InvestorDetail, VerificationStep } from "@/lib/api/types";
 import { useScreenState } from "@/lib/api/use-resource";
 import { fmtNGN } from "@/lib/money";
@@ -57,26 +58,28 @@ function matchesStatusFilter(investor: Investor, filter: string): boolean {
 export function InvestorsScreen() {
   const readOnly = isReadOnly(useAdminStore((s) => s.viewAs));
 
-  const { state, data, retry } = useScreenState(useInvestors(), {
-    isEmpty: (investors) => investors.length === 0,
-  });
-
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Name/email search runs server-side (spans all investors, not just the
+  // loaded page), debounced. The status filter stays client-side over the rows
+  // already loaded.
+  const debouncedQuery = useDebouncedValue(query.trim());
+  const investorsQuery = useInvestors(debouncedQuery || undefined);
+  const { state, data, retry } = useScreenState(investorsQuery, {
+    isEmpty: (investors) => investors.length === 0,
+  });
+
   const investors = useMemo(() => data ?? [], [data]);
 
-  const visibleInvestors = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return investors.filter((investor) => {
-      const matchesSearch =
-        needle === "" ||
-        investor.name.toLowerCase().includes(needle) ||
-        investor.email.toLowerCase().includes(needle);
-      return matchesSearch && matchesStatusFilter(investor, statusFilter);
-    });
-  }, [investors, query, statusFilter]);
+  const visibleInvestors = useMemo(
+    () =>
+      investors.filter((investor) =>
+        matchesStatusFilter(investor, statusFilter),
+      ),
+    [investors, statusFilter],
+  );
 
   const columns: Column<Investor>[] = [
     {
@@ -190,6 +193,18 @@ export function InvestorsScreen() {
               }
             />
           </Card>
+          {investorsQuery.hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void investorsQuery.fetchNextPage()}
+                disabled={investorsQuery.isFetchingNextPage}
+              >
+                {investorsQuery.isFetchingNextPage ? "Loading…" : "Load more"}
+              </Button>
+            </div>
+          )}
         </>
       )}
 
@@ -283,8 +298,8 @@ function InvestorDrawer({
         footer={footer}
       >
         {detailQuery.isPending ? (
-          <div className="grid place-items-center py-16">
-            <Spinner />
+          <div className="py-4">
+            <ContentSkeleton />
           </div>
         ) : detail ? (
           <InvestorDrawerBody detail={detail} tab={tab} onTabChange={setTab} />

@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { UseQueryResult } from "@tanstack/react-query";
 
 // ============================================================
 // useScreenState — collapses a TanStack Query result into the four render
@@ -9,6 +8,16 @@ import type { UseQueryResult } from "@tanstack/react-query";
 // ============================================================
 
 export type DataState = "ready" | "loading" | "empty" | "error";
+
+// Structural shape shared by useQuery and useInfiniteQuery results — enough for
+// the state mapping below, so either kind of query can be passed in.
+interface QueryLike<T> {
+  data: T | undefined;
+  isPending: boolean;
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => unknown;
+}
 
 interface Options<T> {
   isEmpty?: (data: T) => boolean;
@@ -23,7 +32,7 @@ function readOverride(): DataState | null {
 }
 
 export function useScreenState<T>(
-  query: UseQueryResult<T>,
+  query: QueryLike<T>,
   opts: Options<T> = {},
 ) {
   const [override, setOverride] = useState<DataState | null>(null);

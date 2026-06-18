@@ -6,6 +6,7 @@ import { Skeleton, EmptyState, ErrorState } from "@/components/ui/feedback";
 import { Icon } from "@/components/icons";
 import { shortDateTime } from "@/lib/txn";
 import { useAudit } from "@/lib/api/queries";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useScreenState } from "@/lib/api/use-resource";
 import { useToast } from "@/providers/ToastProvider";
 import { ROLES } from "@/lib/roles";
@@ -106,19 +107,15 @@ export function AuditScreen() {
   const toast = useToast();
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
-  const { state, data, retry } = useScreenState(useAudit(), {
+  // Search runs server-side (spans the whole log, not just loaded pages),
+  // debounced so we don't fire a request per keystroke.
+  const debouncedQuery = useDebouncedValue(query.trim());
+  const auditQuery = useAudit(debouncedQuery || undefined);
+  const { state, data, retry } = useScreenState(auditQuery, {
     isEmpty: (d) => d.length === 0,
   });
 
   const entries = data ?? [];
-  const term = query.trim().toLowerCase();
-  const filtered = term
-    ? entries.filter((entry) =>
-        [entry.actor, entry.action, entry.entity]
-          .filter((value): value is string => Boolean(value))
-          .some((value) => value.toLowerCase().includes(term)),
-      )
-    : entries;
 
   return (
     <div>
@@ -174,26 +171,40 @@ export function AuditScreen() {
 
       {state === "empty" && (
         <Card pad={0}>
-          <EmptyState icon="doc" title="No audit entries yet" />
+          <EmptyState
+            icon="doc"
+            title={
+              debouncedQuery ? "No matching entries" : "No audit entries yet"
+            }
+          />
         </Card>
       )}
 
       {state === "ready" && (
         <Card pad={0}>
-          {filtered.length === 0 ? (
-            <EmptyState icon="doc" title="No matching entries" />
-          ) : (
-            filtered.map((entry, index) => (
-              <AuditRow
-                key={entry.id}
-                entry={entry}
-                first={index === 0}
-                open={openId === entry.id}
-                onToggle={() => setOpenId((current) => (current === entry.id ? null : entry.id))}
-              />
-            ))
-          )}
+          {entries.map((entry, index) => (
+            <AuditRow
+              key={entry.id}
+              entry={entry}
+              first={index === 0}
+              open={openId === entry.id}
+              onToggle={() => setOpenId((current) => (current === entry.id ? null : entry.id))}
+            />
+          ))}
         </Card>
+      )}
+
+      {state === "ready" && auditQuery.hasNextPage && (
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void auditQuery.fetchNextPage()}
+            disabled={auditQuery.isFetchingNextPage}
+          >
+            {auditQuery.isFetchingNextPage ? "Loading…" : "Load more"}
+          </Button>
+        </div>
       )}
     </div>
   );

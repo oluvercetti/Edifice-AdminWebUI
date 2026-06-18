@@ -24,7 +24,6 @@ import type {
 
 type LoginResult = components["schemas"]["AdminLoginResultDto"];
 type DashboardDto = components["schemas"]["AdminDashboardDto"];
-type TxnRowDto = components["schemas"]["TxnRowDto"];
 type FlagDto = components["schemas"]["FlagDto"];
 type RuleDto = components["schemas"]["RuleDto"];
 type DisbursementDto = components["schemas"]["DisbursementDto"];
@@ -113,17 +112,20 @@ export const postProgressUpdate = (
 
 // ── Monitoring ───────────────────────────────────────────────────────────────
 
-export const getTransactions = (filter?: {
-  type?: string;
-  flaggedOnly?: boolean;
-}): Promise<Txn[]> => {
+type TxnPageDtoT = components["schemas"]["TxnPageDto"];
+
+export const getTransactions = (
+  filter?: { type?: string; flaggedOnly?: boolean },
+  cursor?: string | null,
+): Promise<Page<Txn>> => {
   const params = new URLSearchParams();
   if (filter?.type) params.set("type", filter.type);
   if (filter?.flaggedOnly) params.set("flaggedOnly", "true");
+  if (cursor) params.set("cursor", cursor);
   const qs = params.toString();
-  return api<TxnRowDto[]>(`/admin/monitoring/transactions${qs ? `?${qs}` : ""}`).then(
-    (d) => d.map(mapTxn),
-  );
+  return api<TxnPageDtoT>(
+    `/admin/monitoring/transactions${qs ? `?${qs}` : ""}`,
+  ).then((d) => ({ items: d.items.map(mapTxn), nextCursor: d.nextCursor }));
 };
 
 export const getFlags = (): Promise<Flag[]> =>
@@ -185,18 +187,40 @@ import type {
   Reports,
 } from "./types";
 
-type InvestorRowDtoT = components["schemas"]["InvestorRowDto"];
 type InvestorDetailDtoT = components["schemas"]["InvestorDetailDto"];
 type CaseRowDtoT = components["schemas"]["CaseRowDto"];
 type ReportsDtoT = components["schemas"]["ReportsDto"];
 type AdminUserRowDtoT = components["schemas"]["AdminUserRowDto"];
-type AuditEntryDtoT = components["schemas"]["AuditEntryDto"];
 export type InviteAdminInput = components["schemas"]["InviteAdminDto"];
 export type UpdateAdminInput = components["schemas"]["UpdateAdminDto"];
 
+type InvestorsPageDtoT = components["schemas"]["InvestorsPageDto"];
+type AuditPageDtoT = components["schemas"]["AuditPageDto"];
+
+/** A page of mapped items + the opaque cursor for the next page (null = end). */
+export interface Page<T> {
+  items: T[];
+  nextCursor: string | null;
+}
+
+/** Build a `?limit=&cursor=&q=` query string for a cursor-paginated endpoint. */
+function pageQuery(cursor?: string | null, limit?: number, q?: string): string {
+  const params = new URLSearchParams();
+  if (limit) params.set("limit", String(limit));
+  if (cursor) params.set("cursor", cursor);
+  if (q) params.set("q", q);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 // A6 — Investors
-export const getInvestors = (): Promise<Investor[]> =>
-  api<InvestorRowDtoT[]>("/admin/investors").then((d) => d.map(mapInvestor));
+export const getInvestors = (
+  cursor?: string | null,
+  q?: string,
+): Promise<Page<Investor>> =>
+  api<InvestorsPageDtoT>(`/admin/investors${pageQuery(cursor, undefined, q)}`).then(
+    (d) => ({ items: d.items.map(mapInvestor), nextCursor: d.nextCursor }),
+  );
 export const getInvestor = (id: string): Promise<InvestorDetail> =>
   api<InvestorDetailDtoT>(`/admin/investors/${encodeURIComponent(id)}`).then(mapInvestorDetail);
 const investorAction = (id: string, action: string) =>
@@ -229,5 +253,10 @@ export const updateAdmin = (id: string, body: UpdateAdminInput): Promise<AdminUs
   api<AdminUserRowDtoT>(`/admin/admins/${id}`, { method: "PATCH", body }).then(mapAdminUser);
 
 // A10 — Audit log
-export const getAudit = (): Promise<AuditEntry[]> =>
-  api<AuditEntryDtoT[]>("/admin/audit").then((d) => d.map(mapAuditEntry));
+export const getAudit = (
+  cursor?: string | null,
+  q?: string,
+): Promise<Page<AuditEntry>> =>
+  api<AuditPageDtoT>(`/admin/audit${pageQuery(cursor, undefined, q)}`).then(
+    (d) => ({ items: d.items.map(mapAuditEntry), nextCursor: d.nextCursor }),
+  );

@@ -1,5 +1,10 @@
 "use client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   approveDisbursement,
   createProject,
@@ -53,9 +58,12 @@ export const useTransactions = (
   filter?: { type?: string; flaggedOnly?: boolean },
   options?: { refetchInterval?: number },
 ) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: queryKeys.transactions(filter?.type, filter?.flaggedOnly),
-    queryFn: () => getTransactions(filter),
+    queryFn: ({ pageParam }) => getTransactions(filter, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+    select: (data) => data.pages.flatMap((p) => p.items),
     refetchInterval: options?.refetchInterval,
   });
 
@@ -208,8 +216,17 @@ export const peopleKeys = {
   audit: ["audit"] as const,
 };
 
-export const useInvestors = () =>
-  useQuery({ queryKey: peopleKeys.investors, queryFn: getInvestors });
+// Cursor-paginated + server-side search (`q` keys the cache so a new term
+// refetches from the first page). `select` flattens pages into one array so
+// screens read `.data` as before; `fetchNextPage`/`hasNextPage` drive Load more.
+export const useInvestors = (q?: string) =>
+  useInfiniteQuery({
+    queryKey: [...peopleKeys.investors, q ?? ""],
+    queryFn: ({ pageParam }) => getInvestors(pageParam, q),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+    select: (data) => data.pages.flatMap((p) => p.items),
+  });
 export const useInvestor = (id: string) =>
   useQuery({
     queryKey: peopleKeys.investor(id),
@@ -222,8 +239,14 @@ export const useReports = () =>
   useQuery({ queryKey: peopleKeys.reports, queryFn: getReports });
 export const useAdminUsers = () =>
   useQuery({ queryKey: peopleKeys.adminUsers, queryFn: getAdminUsers });
-export const useAudit = () =>
-  useQuery({ queryKey: peopleKeys.audit, queryFn: getAudit });
+export const useAudit = (q?: string) =>
+  useInfiniteQuery({
+    queryKey: [...peopleKeys.audit, q ?? ""],
+    queryFn: ({ pageParam }) => getAudit(pageParam, q),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+    select: (data) => data.pages.flatMap((p) => p.items),
+  });
 
 const INVESTOR_ACTIONS = {
   suspend: suspendInvestor,

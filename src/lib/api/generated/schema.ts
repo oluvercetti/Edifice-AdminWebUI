@@ -778,6 +778,11 @@ export interface components {
             /** @description A disbursement was proposed for Finance approval. */
             disbursementProposed: boolean;
         };
+        TxnPageDto: {
+            items: components["schemas"]["TxnRowDto"][];
+            nextCursor: string | null;
+            hasMore: boolean;
+        };
         FlagDto: {
             id: string;
             rule: string;
@@ -863,6 +868,11 @@ export interface components {
             status: string;
             /** Format: date-time */
             joined: string;
+        };
+        InvestorsPageDto: {
+            items: components["schemas"]["InvestorRowDto"][];
+            nextCursor: string | null;
+            hasMore: boolean;
         };
         VerificationStepDto: {
             label: string;
@@ -983,6 +993,11 @@ export interface components {
             /** Format: date-time */
             at: string;
             diff: components["schemas"]["DiffFieldDto"][];
+        };
+        AuditPageDto: {
+            items: components["schemas"]["AuditEntryDto"][];
+            nextCursor: string | null;
+            hasMore: boolean;
         };
         AdminLoginDto: {
             /** @example tunde.b@edifice.ng */
@@ -1258,6 +1273,9 @@ export interface operations {
             query?: {
                 type?: string;
                 flaggedOnly?: boolean;
+                limit?: number;
+                /** @description Opaque cursor from the previous page. */
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -1270,7 +1288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TxnRowDto"][];
+                    "application/json": components["schemas"]["TxnPageDto"];
                 };
             };
         };
@@ -1472,7 +1490,14 @@ export interface operations {
     };
     InvestorsController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Page size (capped server-side). */
+                limit?: number;
+                /** @description Opaque cursor returned as `nextCursor` by the previous page. */
+                cursor?: string;
+                /** @description Free-text search filter. */
+                q?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1484,7 +1509,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InvestorRowDto"][];
+                    "application/json": components["schemas"]["InvestorsPageDto"];
                 };
             };
         };
@@ -1764,7 +1789,14 @@ export interface operations {
     };
     AuditController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Page size (capped server-side). */
+                limit?: number;
+                /** @description Opaque cursor returned as `nextCursor` by the previous page. */
+                cursor?: string;
+                /** @description Free-text search filter. */
+                q?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1776,7 +1808,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuditEntryDto"][];
+                    "application/json": components["schemas"]["AuditPageDto"];
                 };
             };
         };

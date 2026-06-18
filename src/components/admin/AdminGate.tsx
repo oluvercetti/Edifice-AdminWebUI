@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAdminStore } from "@/stores/admin-store";
 import { Shell } from "@/components/admin/Shell";
 import { AuthScreens } from "@/components/screens/AuthScreens";
-import { Spinner } from "@/components/ui/feedback";
+import { ContentSkeleton, Skeleton } from "@/components/ui/feedback";
 
 // ============================================================
 // AdminGate — hydrates the admin session from the httpOnly cookie, then either
@@ -20,8 +20,11 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (status === "idle" || status === "loading") {
     return (
-      <div className="ed-auth-stage grid min-h-screen place-items-center">
-        <Spinner size={40} color="#fff" />
+      <div className="min-h-screen p-5">
+        <div className="mx-auto flex max-w-6xl flex-col gap-5">
+          <Skeleton height={48} radius={12} />
+          <ContentSkeleton />
+        </div>
       </div>
     );
   }

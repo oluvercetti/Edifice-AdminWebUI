@@ -229,22 +229,36 @@ function LiveFeedPanel() {
         </Card>
       )}
       {state === "ready" && (
-        <Card pad={0}>
-          <Table
-            dense
-            columns={columns}
-            rows={rows}
-            onRowClick={setSelected}
-            rowStyle={(row) =>
-              row.flagged
-                ? {
-                    background: "#FEF6F5",
-                    boxShadow: `inset 3px 0 0 ${SEVERITY_COLOR[row.severity ?? "low"]}`,
-                  }
-                : {}
-            }
-          />
-        </Card>
+        <>
+          <Card pad={0}>
+            <Table
+              dense
+              columns={columns}
+              rows={rows}
+              onRowClick={setSelected}
+              rowStyle={(row) =>
+                row.flagged
+                  ? {
+                      background: "#FEF6F5",
+                      boxShadow: `inset 3px 0 0 ${SEVERITY_COLOR[row.severity ?? "low"]}`,
+                    }
+                  : {}
+              }
+            />
+          </Card>
+          {query.hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void query.fetchNextPage()}
+                disabled={query.isFetchingNextPage}
+              >
+                {query.isFetchingNextPage ? "Loading…" : "Load more"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <TxnDrawer txn={selected} onClose={() => setSelected(null)} />
