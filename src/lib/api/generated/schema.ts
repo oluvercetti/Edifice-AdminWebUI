@@ -594,8 +594,59 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set your password from an invite link */
+        /** Set your password from an invite link; signs you in */
         post: operations["AdminAuthController_acceptInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auth/mfa/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Begin MFA setup — returns the key + QR URI */
+        get: operations["AdminAuthController_mfaSetup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auth/mfa/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a code to enable MFA */
+        post: operations["AdminAuthController_mfaEnable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auth/mfa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disable MFA (requires a current code) */
+        post: operations["AdminAuthController_mfaDisable"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1053,7 +1104,9 @@ export interface components {
         AdminLoginResultDto: {
             /** @description A TOTP challenge is now pending. */
             mfaRequired: boolean;
-            /** @description The signed-in admin — present only when MFA is disabled and the session was issued directly (mfaRequired = false). */
+            /** @description MFA is required for this admin but not yet enrolled — a session was issued and the client must complete MFA setup before continuing. */
+            mfaSetupRequired: boolean;
+            /** @description The signed-in admin — present when a session was issued directly (mfaRequired = false), i.e. MFA off or pending setup. */
             admin: components["schemas"]["PublicAdminDto"] | null;
         };
         AcceptInviteDto: {
@@ -1062,9 +1115,23 @@ export interface components {
             /** @description The password you’re setting. */
             password: string;
         };
-        AdminOkDto: {
-            /** @example true */
-            ok: boolean;
+        AcceptInviteResultDto: {
+            /** @description The invite required MFA — complete setup next. */
+            mfaSetupRequired: boolean;
+            admin: components["schemas"]["PublicAdminDto"];
+        };
+        MfaSetupDto: {
+            /** @description Base32 secret — show as the manual key. */
+            secret: string;
+            /** @description otpauth:// URI to render as a scannable QR. */
+            otpauthUri: string;
+        };
+        MfaCodeDto: {
+            /**
+             * @description 6-digit TOTP code
+             * @example 123456
+             */
+            code: string;
         };
         AdminMfaDto: {
             /**
@@ -1080,6 +1147,10 @@ export interface components {
              */
             expiresIn: number;
             admin: components["schemas"]["PublicAdminDto"];
+        };
+        AdminOkDto: {
+            /** @example true */
+            ok: boolean;
         };
         AdminChangePasswordDto: {
             /** @description The admin’s current password. */
@@ -1919,7 +1990,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminOkDto"];
+                    "application/json": components["schemas"]["AcceptInviteResultDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_mfaSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaSetupDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_mfaEnable: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaCodeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAdminDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_mfaDisable: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaCodeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAdminDto"];
                 };
             };
         };

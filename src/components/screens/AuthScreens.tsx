@@ -8,6 +8,8 @@ import { Field, Input } from "@/components/ui/Field";
 import { cx } from "@/lib/cx";
 import { ApiError } from "@/lib/api/http";
 import { login, verifyMfa } from "@/lib/auth";
+import { MfaSetup } from "@/components/MfaSetup";
+import { useAdminStore } from "@/stores/admin-store";
 import { adminLoginSchema, type AdminLoginValues } from "@/lib/schemas";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -21,7 +23,7 @@ function errorMessage(error: unknown, fallback: string): string {
 // Login uses react-hook-form + zod; internal-use framing on the brand stage.
 // ============================================================
 
-type Mode = "login" | "mfa" | "denied";
+type Mode = "login" | "mfa" | "mfaSetup" | "denied";
 
 function Stage({ children }: { children: React.ReactNode }) {
   return (
@@ -81,11 +83,13 @@ export function AuthScreens() {
     setLoginError(null);
     try {
       const result = await login(email, password);
-      // MFA disabled → login already set the session; the gate re-renders to
-      // the console. Only advance to the TOTP step when the backend asks.
+      // MFA off → login already set the session; the gate re-renders to the
+      // console. Otherwise advance to the right step.
       if (result.mfaRequired) {
         setDigits(Array(6).fill(""));
         setMode("mfa");
+      } else if (result.mfaSetupRequired) {
+        setMode("mfaSetup"); // required but not yet enrolled
       }
     } catch (error) {
       const message = errorMessage(error, "Sign-in failed.");
@@ -201,6 +205,21 @@ export function AuthScreens() {
         <Button full size="lg" busy={mfaBusy} onClick={() => submitMfa(digits.join(""))} disabled={digits.join("").length !== 6}>
           Verify &amp; continue
         </Button>
+      </Stage>
+    );
+  }
+
+  if (mode === "mfaSetup") {
+    return (
+      <Stage>
+        <Brand />
+        <h1 className="mb-1 text-2xl font-bold">Set up MFA</h1>
+        <p className="mb-5 text-sm text-muted">
+          Your account requires two-factor authentication.
+        </p>
+        <MfaSetup
+          onComplete={(admin) => useAdminStore.getState().setAdmin(admin)}
+        />
       </Stage>
     );
   }

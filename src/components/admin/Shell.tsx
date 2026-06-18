@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { AInput } from "@/components/admin/primitives";
+import { SecurityModal } from "@/components/admin/SecurityModal";
 import { cx } from "@/lib/cx";
 import { useAdminStore, type AdminRole } from "@/stores/admin-store";
 import { ROLES, isReadOnly, navForRole } from "@/lib/roles";
@@ -81,6 +82,7 @@ function Sidebar({ viewAs }: { viewAs: AdminRole | null }) {
 function TopBar() {
   const { admin, viewAs, setViewAs } = useAdminStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
   if (!admin) return null;
   const role = viewAs ?? admin.roles[0];
   const roleMeta = ROLES[role];
@@ -157,6 +159,16 @@ function TopBar() {
               ))}
               <div className="my-2 h-px bg-line" />
               <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setSecurityOpen(true);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-sm font-semibold text-ink"
+              >
+                <Icon.shieldCheck size={16} />
+                Account &amp; security
+              </button>
+              <button
                 onClick={() => void logout()}
                 className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-sm font-semibold text-danger"
               >
@@ -167,6 +179,7 @@ function TopBar() {
           </>
         )}
       </div>
+      <SecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </header>
   );
 }

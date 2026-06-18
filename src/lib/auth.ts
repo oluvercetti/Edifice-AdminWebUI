@@ -15,10 +15,14 @@ export async function login(email: string, password: string) {
   const result = await adminLogin(email, password);
   if (result.mfaRequired) {
     useAdminStore.getState().setPendingMfa(true);
+  } else if (result.mfaSetupRequired) {
+    // A session was issued, but MFA is required and not yet enrolled. Stay
+    // unauthenticated in the store so the gate keeps showing the auth flow
+    // (which renders the MFA setup step) until the caller completes setup.
   } else if (result.admin) {
     useAdminStore.getState().setAdmin(result.admin as AdminUser);
   }
-  return result; // { mfaRequired, admin? }
+  return result; // { mfaRequired, mfaSetupRequired, admin? }
 }
 
 /** Step 2 — verify the TOTP code; backend sets the session cookies. */

@@ -6,8 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
+import { MfaSetup } from "@/components/MfaSetup";
 import { ApiError } from "@/lib/api/http";
 import { acceptInvite } from "@/lib/api/client";
+import { useAdminStore, type AdminUser } from "@/stores/admin-store";
 import {
   createPasswordSchema,
   type CreatePasswordValues,
@@ -16,8 +18,9 @@ import { useToast } from "@/providers/ToastProvider";
 
 // ============================================================
 // Create-password (invite acceptance). Public route — an invitee has no session
-// yet. Reads the single-use token from the link, lets them set their own
-// password, then sends them to sign in. No temp password is ever involved.
+// yet. Reads the single-use token, lets them set their own password (accepting
+// the invite signs them in), then — if the invite required MFA — flows straight
+// into MFA setup before entering the console.
 // ============================================================
 
 function Brand() {
@@ -41,6 +44,7 @@ export function CreatePasswordScreen() {
   const router = useRouter();
   const toast = useToast();
   const token = useSearchParams().get("token") ?? "";
+  const [step, setStep] = useState<"password" | "mfa">("password");
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,12 +58,22 @@ export function CreatePasswordScreen() {
     defaultValues: { password: "", confirm: "" },
   });
 
+  const enterConsole = (admin: AdminUser) => {
+    useAdminStore.getState().setAdmin(admin);
+    router.replace("/");
+  };
+
   const onSubmit = handleSubmit(async ({ password }) => {
     setBusy(true);
     try {
-      await acceptInvite(token, password);
-      toast("Password set — sign in to continue", "success");
-      router.replace("/");
+      const result = await acceptInvite(token, password);
+      if (result.mfaSetupRequired) {
+        toast("Password set — now set up MFA", "success");
+        setStep("mfa");
+      } else {
+        toast("Welcome to the console", "success");
+        enterConsole(result.admin);
+      }
     } catch (error) {
       toast(
         error instanceof ApiError ? error.message : "Couldn’t set your password.",
@@ -83,6 +97,14 @@ export function CreatePasswordScreen() {
                 your invite.
               </p>
             </div>
+          ) : step === "mfa" ? (
+            <>
+              <h1 className="mb-1 text-2xl font-bold">Set up MFA</h1>
+              <p className="mb-5 text-sm text-muted">
+                Your account requires two-factor authentication.
+              </p>
+              <MfaSetup onComplete={enterConsole} />
+            </>
           ) : (
             <>
               <h1 className="mb-1 text-2xl font-bold">Create your password</h1>

@@ -54,10 +54,23 @@ export const adminLogout = () =>
 export const adminMe = () => api<AdminUser>("/admin/auth/me");
 
 export const acceptInvite = (token: string, password: string) =>
-  api<{ ok: boolean }>("/admin/auth/accept-invite", {
+  api<{ mfaSetupRequired: boolean; admin: AdminUser }>(
+    "/admin/auth/accept-invite",
+    { method: "POST", body: { token, password }, auth: false },
+  );
+
+// MFA enrollment (authenticated).
+export const startMfaSetup = () =>
+  api<{ secret: string; otpauthUri: string }>("/admin/auth/mfa/setup");
+export const enableMfa = (code: string) =>
+  api<AdminUser>("/admin/auth/mfa/enable", {
     method: "POST",
-    body: { token, password },
-    auth: false,
+    body: { code },
+  });
+export const disableMfa = (code: string) =>
+  api<AdminUser>("/admin/auth/mfa/disable", {
+    method: "POST",
+    body: { code },
   });
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
