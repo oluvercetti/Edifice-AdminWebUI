@@ -156,11 +156,12 @@ select {
   font-feature-settings: "tnum";
 }
 
-/* Generic focus ring */
+/* Generic focus ring — for buttons/links and anything opting in via .focusable.
+   Inputs/textareas are deliberately excluded: their wrapper already renders a
+   rounded focus-within ring, so a global outline on the inner field would draw
+   a second line around it. */
 .focusable:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
+button:focus-visible {
   outline: 2px solid var(--primary-accent);
   outline-offset: 2px;
 }
