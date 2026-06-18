@@ -35,7 +35,14 @@ export async function verifyMfa(code: string) {
 export async function logout() {
   try {
     await adminLogout();
+  } catch {
+    /* clear + redirect locally even if the network call fails */
   } finally {
     useAdminStore.getState().clear();
+  }
+  // Hard reload to the root — the gate renders sign-in there. A full refresh
+  // resets the URL and clears any lingering authenticated state.
+  if (typeof window !== "undefined") {
+    window.location.assign("/");
   }
 }
